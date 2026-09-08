@@ -1,0 +1,4 @@
+
+# vale styles, rebuilt from Packages by `vale sync`
+.vale/
+.cache/

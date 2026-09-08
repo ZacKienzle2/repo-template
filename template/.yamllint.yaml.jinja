@@ -15,20 +15,8 @@ rules:
     spaces: 2
     indent-sequences: consistent
 
-ignore: |
-  node_modules/
-  .git/
-  .venv/
-  dist/
-  build/
-  .pytest_cache/
-  .ruff_cache/
-  __pycache__/
-{%- if has_cpp %}
-  # clang keeps its own configuration in these, and their formatting is clang's
-  # convention rather than this project's: .clang-tidy writes CheckOptions as
-  # inline maps with spaces inside the braces, and .clang-format uses Yes and No
-  # where yamllint wants true and false. Both are YAML by shape only.
-  .clang-tidy
-  .clang-format
-{%- endif %}
+# The generated ignore file already lists the caches and build directories, and
+# yamllint reads it directly rather than keeping a second copy. The key is
+# mutually exclusive with `ignore`, so the list is gone. .yamlignore holds only
+# what is tracked and still not this project's YAML to format.
+ignore-from-file: [.gitignore, .yamlignore]
