@@ -24,6 +24,16 @@ max_line_length = off
 max_line_length = unset
 indent_size = 2
 
+# The template's sources carry a .jinja suffix, so the sections above do not
+# match them and they would inherit the four-space default. These two are
+# this repository's alone; they are not in the rendered .editorconfig.
+[template/**.{yml,yaml,json,toml}.jinja]
+indent_size = 2
+max_line_length = unset
+
+[template/**.{js,cjs,mjs}.jinja]
+indent_size = 2
+
 [Makefile]
 indent_style = tab
 
