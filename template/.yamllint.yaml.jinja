@@ -17,6 +17,7 @@ rules:
 
 # The generated ignore file already lists the caches and build directories, and
 # yamllint reads it directly rather than keeping a second copy. The key is
-# mutually exclusive with `ignore`, so the list is gone. .yamlignore holds only
-# what is tracked and still not this project's YAML to format.
-ignore-from-file: [.gitignore, .yamlignore]
+# mutually exclusive with `ignore`, so the list is gone. .yamlignore exists only
+# where a tracked file is YAML by shape and not this project's to format, which
+# is clang's configuration. Where there is no such file, copier writes none.
+ignore-from-file: [.gitignore{% if has_cpp %}, .yamlignore{% endif %}]
