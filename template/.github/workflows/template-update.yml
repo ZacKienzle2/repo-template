@@ -1,8 +1,8 @@
 # The lint configuration comes from ZacKienzle2/repo-template through copier,
 # and this is copier's documented way to move a generated project when its
 # template changes: `copier update` reads .copier-answers.yml, renders the
-# template at its current commit and applies the difference, writing a .rej
-# beside any hunk it cannot apply rather than overwriting an edit. The pull
+# template at its current commit and applies the difference, leaving a hunk
+# it cannot apply over a local edit as a conflict with git's markers. The pull
 # request is opened by peter-evans/create-pull-request, which commits whatever
 # changed and updates the same pull request on later runs. A run with nothing
 # new changes no file and opens nothing.
@@ -62,5 +62,5 @@ jobs:
           title: "build(config): update from the shared template"
           body: |
             `copier update` against ZacKienzle2/repo-template at its current
-            commit. A `.rej` beside a file is a hunk copier could not apply
-            over a local edit; resolve it by hand and delete the `.rej`.
+            commit. Conflict markers in a file are a hunk copier could not
+            apply over a local edit; resolve them before merging.

@@ -36,8 +36,9 @@ _message_after_copy: |
   Guide, which is the published standard these settings answer to.
 
 _message_after_update: |
-  Updated. Any hunk that would not apply is beside its file as a .rej, which
-  copier writes rather than overwriting your edit.
+  Updated. A hunk that would not apply over a local edit is left as a
+  conflict in the file, with git's own markers and the file unmerged in the
+  index, which is copier's default and what `git status` reports as UU.
 
 has_cpp:
   type: bool
