@@ -60,6 +60,17 @@ repos:
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
         exclude: \.pre-commit-config\.yaml(\.jinja)?$
 
+      # A co-author trailer or a generated-with line names a tool as an author
+      # of the work, which is not acceptable on a public repository. Claude
+      # Code turns both off through its attribution settings. This rejects the
+      # message on any machine where that setting is missing.
+      - id: no-tool-attribution
+        name: Reject tool attribution in the commit message
+        language: pygrep
+        entry: 'co-authored-by: claude|generated with \[claude code\]'
+        args: [-i]
+        stages: [commit-msg]
+
 {%- if has_python %}
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
