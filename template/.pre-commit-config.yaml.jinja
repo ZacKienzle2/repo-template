@@ -100,6 +100,43 @@ repos:
     hooks:
       - id: clang-format
         types_or: [c++, c, cuda]
+
+  # cmakelang publishes no hooks of its own and the third-party mirror stopped
+  # in 2022, so pre-commit installs the package itself. Both tools read
+  # .cmake-format.json for every file, which is where the width and the
+  # variable patterns are: cmakelang 0.6.13 applies a command-line flag to the
+  # first file of an invocation alone, and pre-commit batches files, so a
+  # flag gave a verdict that depended on which files were batched together.
+  - repo: local
+    hooks:
+      - id: cmake-format
+        name: cmake-format
+        entry: cmake-format
+        language: python
+        additional_dependencies: ["cmakelang==0.6.13"]
+        files: '(CMakeLists\.txt|\.cmake)$'
+        args: ["--in-place"]
+      - id: cmake-lint
+        name: cmake-lint
+        entry: cmake-lint
+        language: python
+        additional_dependencies: ["cmakelang==0.6.13"]
+        files: '(CMakeLists\.txt|\.cmake)$'
+{%- endif %}
+{%- if has_latex %}
+
+  # chktex is part of every TeX Live, so the hook runs the installed one and
+  # reads .chktexrc from the working directory, which is where chktex looks.
+  # The manual stage keeps it off the commit path; `pre-commit run chktex
+  # --hook-stage manual --all-files` runs it on demand.
+  - repo: local
+    hooks:
+      - id: chktex
+        name: chktex
+        entry: chktex --quiet --inputfiles=0
+        language: system
+        files: '\.tex$'
+        stages: [manual]
 {%- endif %}
 
   # Schemas rather than opinions: each of these is the published schema for the
