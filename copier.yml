@@ -43,17 +43,15 @@ _message_after_update: |
 has_cpp:
   type: bool
   help: >-
-    Does the repository hold C or C++ built with CMake? clang keeps its own
-    configuration in .clang-format and .clang-tidy, which are YAML by shape and
-    clang's convention by content, so yamllint is told to leave them alone.
+    Does the repository hold C or C++ built with CMake? clang keeps its own configuration in .clang-format and
+    .clang-tidy, which are YAML by shape and clang's convention by content, so yamllint is told to leave them alone.
   default: false
 
 has_generated_changelog:
   type: bool
   help: >-
-    Is CHANGELOG.md generated, by git-cliff or another tool? A generator's
-    template decides its blank lines, so the markdown rule about consecutive
-    ones stops applying and the end-of-file fixer leaves the file alone.
+    Is CHANGELOG.md generated, by git-cliff or another tool? A generator's template decides its blank lines, so the
+    markdown rule about consecutive ones stops applying and the end-of-file fixer leaves the file alone.
   default: false
 
 has_python:
