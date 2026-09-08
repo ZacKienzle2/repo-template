@@ -12,6 +12,11 @@
 
 exclude: ^\.copier-answers\.yml$
 
+# pre-commit install puts in only the pre-commit stage unless told otherwise,
+# and the hooks below that run at commit-msg are silent until it is. Listing
+# both here is the documented way to make one `pre-commit install` enough.
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -54,17 +59,6 @@ repos:
         language: pygrep
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
         exclude: \.pre-commit-config\.yaml(\.jinja)?$
-
-      # A co-author trailer or a generated-with line names a tool as an author
-      # of the work, which is not acceptable on a public repository. Claude
-      # Code turns both off through its attribution settings. This rejects the
-      # message on any machine where that setting is missing.
-      - id: no-tool-attribution
-        name: Reject tool attribution in the commit message
-        language: pygrep
-        entry: 'co-authored-by: claude|generated with \[claude code\]'
-        args: [-i]
-        stages: [commit-msg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
@@ -162,3 +156,15 @@ repos:
       - id: vale
         args: [--no-global, --minAlertLevel=error, --output=line]
         types_or: [markdown]
+      # The commit message, at the stage git hands it over. .vale.ini reads
+      # the message file as Markdown and names one published rule for it,
+      # CommitAttribution from ai-tells-commits, which knows the co-author
+      # trailers and generated-with lines a tool appends. Claude Code turns
+      # those off through its attribution settings; this catches a machine
+      # where that setting is missing, with upstream's vocabulary rather than
+      # a pattern typed here.
+      - id: vale
+        alias: vale-commit-message
+        name: vale on the commit message
+        args: [--no-global, --minAlertLevel=error, --output=line]
+        stages: [commit-msg]
