@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: Run the template's own hooks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+
+  generated:
+    name: Generate and check against the guide
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: python
+            answers: "--data has_python=true --data has_cpp=false"
+          - name: cpp
+            answers: "--data has_python=false --data has_cpp=true"
+          - name: notebooks
+            answers:
+              "--data has_notebooks=true --data has_generated_changelog=true"
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@05273c154d09957eb9a2377d9c988fbda431d1c5 # v6.4.0
+
+      # A template that generates an invalid configuration is worse than none,
+      # so each answer set is rendered and the result is put to the tools it
+      # configures rather than read.
+      - name: Generate a project
+        run: |
+          mkdir -p /tmp/generated
+          cd /tmp/generated
+          git init -q
+          uvx copier copy --trust --defaults ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
+
+      - name: Validate the generated hooks
+        run:
+          uvx pre-commit validate-config /tmp/generated/.pre-commit-config.yaml
+
+      # sp-repo-review implements the Scientific Python Development Guide the
+      # hook selection follows, so the guide checks its own advice.
+      - name: Check against the Scientific Python Development Guide
+        run: uvx --from 'sp-repo-review[cli]' repo-review /tmp/generated || true

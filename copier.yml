@@ -21,6 +21,11 @@
 
 _answers_file: .copier-answers.yml
 
+# The template's sources live here, so the repository root is an ordinary
+# project that its own hooks can lint. Without the split, yamllint and the
+# workflow schema check read the .jinja sources and reject the Jinja in them.
+_subdirectory: template
+
 _message_after_copy: |
   Written. Two things follow:
 

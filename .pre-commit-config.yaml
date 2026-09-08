@@ -1,0 +1,154 @@
+# Hooks.
+#
+# The selection follows the Scientific Python Development Guide, whose own
+# template publishes this file at
+# scientific-python/cookie/{{cookiecutter.project_name}}/.pre-commit-config.yaml.
+# sp-repo-review implements the guide as checks, so the result is measurable:
+# run `uvx --from 'sp-repo-review[cli]' repo-review .` against a generated
+# repository. Every revision below is set by `pre-commit autoupdate` rather
+# than typed, and Dependabot's pre-commit ecosystem moves them afterwards.
+#
+# What the guide does not cover is prose, which the vale block at the end adds.
+
+exclude: ^\.copier-answers\.yml$
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-vcs-permalinks
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: check-toml
+      - id: check-json
+      - id: destroyed-symlinks
+      - id: forbid-submodules
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: no-commit-to-branch
+        args: ["--branch", "main"]
+      - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+      - id: end-of-file-fixer
+
+  # The guide's answer to formatting everything that is not Python: one
+  # formatter across yaml, markdown, json and the web languages, rather than a
+  # rule per file type argued out by hand.
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.9.6
+    hooks:
+      - id: prettier
+        types_or: [yaml, markdown, html, css, scss, javascript, json]
+        args: [--prose-wrap=always]
+
+  # Capitalisation of the names of the tools themselves, which no linter has an
+  # opinion about and everyone gets wrong.
+  - repo: local
+    hooks:
+      - id: disallow-caps
+        name: Disallow improper capitalization
+        language: pygrep
+        entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
+        exclude: \.pre-commit-config\.yaml(\.jinja)?$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter, markdown, pyproject]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: "0.26"
+    hooks:
+      - id: validate-pyproject
+        additional_dependencies: ["validate-pyproject-schema-store[all]"]
+
+  # Schemas rather than opinions: each of these is the published schema for the
+  # file it reads, so a workflow or a Dependabot configuration that GitHub
+  # would reject fails here instead.
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: "0.38.0"
+    hooks:
+      - id: check-dependabot
+      - id: check-github-workflows
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.30.0
+    hooks:
+      - id: zizmor
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: ["--strict", "--config-file=.yamllint.yaml"]
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+      - id: markdownlint-cli2
+        args: ["--config", ".markdownlint.yaml"]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      - id: shellcheck
+
+  # Overriding args drops the upstream --write-changes. A spell checker has no
+  # notion of syntax, and left to rewrite files it edits identifiers and
+  # extension lists. Reporting a suspected typo is useful. Applying the
+  # correction unattended is not.
+  # `pre-commit autoupdate` moves this to the floating v1, which is never
+  # re-resolved after the first install and warns on every commit thereafter.
+  # An immutable tag is the point of pinning, so the version stays exact and
+  # Dependabot's pre-commit ecosystem moves it.
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.50.1
+    hooks:
+      - id: typos
+        args: ["--force-exclude"]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
+  # Prose, which the guide does not cover. The hook entry is the bare vale
+  # command, so it installs nothing the configuration names; the first entry
+  # runs `vale sync` for that, which the packages documentation says to do
+  # before linting. --no-global reads this repository's configuration alone, so
+  # the hook reports the same thing here as on a runner.
+  - repo: https://github.com/errata-ai/vale
+    rev: v3.20.0
+    hooks:
+      - id: vale
+        alias: vale-sync
+        name: vale sync
+        args: [sync]
+        pass_filenames: false
+        files: ^\.vale\.ini$
+      - id: vale
+        args: [--no-global, --minAlertLevel=error, --output=line]
+        types_or: [markdown]
