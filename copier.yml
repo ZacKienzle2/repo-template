@@ -1,0 +1,66 @@
+# Shared repository configuration.
+#
+# The files this template owns were, before it existed, near-identical copies
+# in five repositories: .yamllint.yaml agreed to 94 per cent across four,
+# commitlint.config.cjs to 91, .markdownlint.yaml to 89, and the security
+# workflows to 94 across three. 3711 lines were held that way, each edited by
+# hand in every copy. Two changes went wrong that week for exactly that reason:
+# an action input renamed in three repositories that pinned two different major
+# versions, and a justification copied into a repository the reason did not
+# apply to.
+#
+# Sharma, Fragkoulis and Spinellis name the duplicated block as a configuration
+# smell in "Does your configuration code smell?" (MSR 2016,
+# doi:10.1145/2901739.2901761), and Gallaba and McIntosh measure the same habit
+# in continuous integration in "Use and Misuse of Continuous Integration
+# Features" (TSE 2020, doi:10.1109/tse.2018.2838131).
+#
+# Every question below stands for a fact about the repository that changes what
+# a configuration should say, and each was found by diffing the copies rather
+# than imagined.
+
+_answers_file: .copier-answers.yml
+
+_message_after_copy: |
+  Written. Two things follow:
+
+    pre-commit install --install-hooks
+    uvx --from 'sp-repo-review[cli]' repo-review .
+
+  The second reports this repository against the Scientific Python Development
+  Guide, which is the published standard these settings answer to.
+
+_message_after_update: |
+  Updated. Any hunk that would not apply is beside its file as a .rej, which
+  copier writes rather than overwriting your edit.
+
+has_cpp:
+  type: bool
+  help: >-
+    Does the repository hold C or C++ built with CMake? clang keeps its own
+    configuration in .clang-format and .clang-tidy, which are YAML by shape and
+    clang's convention by content, so yamllint is told to leave them alone.
+  default: false
+
+has_generated_changelog:
+  type: bool
+  help: >-
+    Is CHANGELOG.md generated, by git-cliff or another tool? A generator's
+    template decides its blank lines, so the markdown rule about consecutive
+    ones stops applying and the end-of-file fixer leaves the file alone.
+  default: false
+
+has_python:
+  type: bool
+  help: Does the repository hold Python?
+  default: true
+
+has_notebooks:
+  type: bool
+  help: Does the repository hold Jupyter notebooks?
+  default: false
+
+has_latex:
+  type: bool
+  help: Does the repository hold LaTeX?
+  default: false
