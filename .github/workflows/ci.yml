@@ -35,8 +35,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      # no-commit-to-branch guards a clone against committing to main directly.
+      # On a runner the checkout is main because a commit already reached it,
+      # so the hook fails every push here. SKIP is the variable pre-commit
+      # documents for leaving a hook out of one run, and the hook keeps
+      # guarding every clone.
       - name: Run pre-commit
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        env:
+          SKIP: no-commit-to-branch
 
   generated:
     name: Generate and check against the guide
