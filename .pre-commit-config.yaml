@@ -23,9 +23,13 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-illegal-windows-names
       - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
       - id: check-symlinks
       - id: check-vcs-permalinks
+      - id: check-xml
       - id: check-yaml
         args: ["--allow-multiple-documents"]
       - id: check-toml
@@ -113,6 +117,13 @@ repos:
     rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
+
+  # .editorconfig is read by every editor and by prettier; this is the check
+  # that the tree agrees with it, which three repositories carried by hand.
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v4.0.1
+    hooks:
+      - id: editorconfig-checker
 
   # Overriding args drops the upstream --write-changes. A spell checker has no
   # notion of syntax, and left to rewrite files it edits identifiers and

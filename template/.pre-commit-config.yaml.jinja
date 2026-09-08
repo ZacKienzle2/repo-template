@@ -23,9 +23,13 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-illegal-windows-names
       - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
       - id: check-symlinks
       - id: check-vcs-permalinks
+      - id: check-xml
       - id: check-yaml
         args: ["--allow-multiple-documents"]
       - id: check-toml
@@ -137,6 +141,15 @@ repos:
         language: system
         files: '\.tex$'
         stages: [manual]
+      # A source that is not valid UTF-8 comes from a paste out of Word or a
+      # partial transcode, and the build's error names none of that. iconv
+      # exits non-zero at the first invalid sequence, so the check is the
+      # converter's own rather than a pattern or a script.
+      - id: utf8
+        name: valid UTF-8
+        entry: iconv -f UTF-8 -t UTF-8
+        language: system
+        files: '\.(tex|bib|cls|sty|bst|pgf)$'
 {%- endif %}
 
   # Schemas rather than opinions: each of these is the published schema for the
@@ -173,6 +186,13 @@ repos:
     rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
+
+  # .editorconfig is read by every editor and by prettier; this is the check
+  # that the tree agrees with it, which three repositories carried by hand.
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v4.0.1
+    hooks:
+      - id: editorconfig-checker
 
   # Overriding args drops the upstream --write-changes. A spell checker has no
   # notion of syntax, and left to rewrite files it edits identifiers and
