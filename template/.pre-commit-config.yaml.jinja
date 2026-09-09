@@ -113,6 +113,22 @@ repos:
       - id: validate-pyproject
         additional_dependencies: ["validate-pyproject-schema-store[all]"]
 {%- endif %}
+{%- if has_python and has_import_linter %}
+
+  # import-linter checks the layering contract in .importlinter, whole tree,
+  # since a contract is about the graph. Its own hook is language: system and
+  # so needs lint-imports on PATH, which the CI runner's Python does not have;
+  # a local hook lets pre-commit install it, as validate-pyproject's does.
+  - repo: local
+    hooks:
+      - id: import-linter
+        name: import-linter
+        entry: lint-imports
+        language: python
+        additional_dependencies: [import-linter]
+        pass_filenames: false
+        files: ^(.*\.py|\.importlinter)$
+{%- endif %}
 {%- if has_notebooks %}
 
   - repo: https://github.com/kynan/nbstripout

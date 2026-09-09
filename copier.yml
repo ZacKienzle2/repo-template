@@ -68,6 +68,14 @@ has_python:
   help: Does the repository hold Python?
   default: true
 
+has_import_linter:
+  type: bool
+  help: >-
+    Does the repository declare a layering contract in .importlinter? import-linter then checks it as a hook, whole
+    tree, since a contract is about the graph rather than a file.
+  default: false
+  when: "{{ has_python }}"
+
 has_notebooks:
   type: bool
   help: Does the repository hold Jupyter notebooks?
@@ -77,6 +85,14 @@ has_node:
   type: bool
   help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and the labeler marks it.
   default: false
+
+gitignore_own:
+  type: yaml
+  help: >-
+    Paths only this repository produces, as a YAML list of patterns anchored to the root (/cache/, /outputs/), rendered
+    after the block assembled from github/gitignore. They live here rather than at the end of .gitignore so that file is
+    entirely the template's and copier update never has to carry a hand-written tail forward.
+  default: []
 
 # Values every rendered file agrees on. A question with `when: false` is never
 # asked and never recorded; its default is what every render uses, so the

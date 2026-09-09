@@ -4,11 +4,12 @@
     answers as the rest of the template. Editor and operating system
     byproducts are absent on purpose: upstream keeps those under Global/ for
     a user's own core.excludesFile, which the dotfiles set on every machine.
-    A path only this repository produces belongs after the assembled block;
-    copier update carries forward the lines it did not write. -#}
+    A path only this repository produces is the gitignore_own answer,
+    rendered after the assembled block, so nothing in this file is written
+    by hand. -#}
 # Assembled by copier from github/gitignore; the source files are in the
-# template repository, not here. A path of this repository's own goes after
-# this block.
+# template repository, not here. A path of this repository's own is the
+# gitignore_own answer in .copier-answers.yml, rendered at the end.
 {%- if has_python %}
 
 {% filter trim %}{% include "gitignore/Python.gitignore" %}{% endfilter %}
@@ -22,4 +23,11 @@
 {%- if has_latex %}
 
 {% filter trim %}{% include "gitignore/TeX.gitignore" %}{% endfilter %}
+{%- endif %}
+{%- if gitignore_own %}
+
+# This repository's own, the gitignore_own answer in .copier-answers.yml.
+{%- for path in gitignore_own %}
+{{ path }}
+{%- endfor %}
 {%- endif %}
