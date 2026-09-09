@@ -60,6 +60,14 @@ repos:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
 
+  # taplo formats TOML, which prettier does not read: pyproject, ruff, typos,
+  # lychee and cliff. uv.lock is uv's own output; taplo's defaults leave lock
+  # files alone even when handed the path, so nothing here says so.
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
+
   # Capitalisation of the names of the tools themselves, which no linter has an
   # opinion about and everyone gets wrong.
   - repo: local
@@ -76,9 +84,16 @@ repos:
     rev: v0.16.6
     hooks:
       - id: ruff-check
-        args: ["--fix"]
+        args: ["--fix", "--show-fixes"]
       - id: ruff-format
         types_or: [python, pyi, jupyter, markdown, pyproject]
+
+  # uv's own hook refuses a commit whose uv.lock no longer matches
+  # pyproject.toml, so the lock file the CI jobs sync from is never stale.
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.11
+    hooks:
+      - id: uv-lock
 
   # At the manual stage until a tree type-checks: measured on the first
   # repository to take these hooks, mypy reports 28 errors through this mirror
@@ -134,6 +149,15 @@ repos:
         language: python
         additional_dependencies: ["cmakelang==0.6.13"]
         files: '(CMakeLists\.txt|\.cmake)$'
+
+  # cppcheck reads .clang-tidy's neighbours nothing else does: it needs no
+  # compilation database. On the manual stage, as chktex is: `pre-commit run
+  # cppcheck --hook-stage manual --all-files`.
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.4.0
+    hooks:
+      - id: cppcheck
+        stages: [manual]
 {%- endif %}
 {%- if has_latex %}
 

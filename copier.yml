@@ -113,6 +113,12 @@ commit_width:
   default: 72
   when: false
 
+python_version:
+  type: str
+  help: The Python every repository pins; .python-version, mypy's python_version and ruff's target read it.
+  default: "3.12"
+  when: false
+
 commit_types:
   type: yaml
   help: >-
