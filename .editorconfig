@@ -81,3 +81,8 @@ end_of_line = crlf
 # repository's alone; it is not in the rendered .editorconfig.
 [template/**.jinja]
 indent_size = 2
+
+# A Markdown template keeps Markdown's list-continuation indentation, as the
+# [*.md] section says for the rendered file.
+[template/**.md.jinja]
+indent_size = unset

@@ -41,6 +41,14 @@ _message_after_update: |
   conflict in the file, with git's own markers and the file unmerged in the
   index, which is copier's default and what `git status` reports as UU.
 
+github_repository:
+  type: str
+  help: >-
+    The repository as owner/name on GitHub. Issue form contact links, SUPPORT.md, CONTRIBUTING.md, CODEOWNERS and the
+    changelog's commit and compare links are built from it.
+  default: "ZacKienzle2/{{ (_copier_conf.dst_path | string).split('/') | last }}"
+  validator: "{% if not github_repository or '/' not in github_repository %}owner/name{% endif %}"
+
 has_cpp:
   type: bool
   help: >-
@@ -63,6 +71,11 @@ has_python:
 has_notebooks:
   type: bool
   help: Does the repository hold Jupyter notebooks?
+  default: false
+
+has_node:
+  type: bool
+  help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and the labeler marks it.
   default: false
 
 has_latex:
