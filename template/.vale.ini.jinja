@@ -49,6 +49,15 @@ BasedOnStyles = proselint
 # way to tell those from the real thing. It stays visible while writing and
 # stops failing a commit.
 proselint.Typography = warning
+{%- if has_generated_changelog %}
+
+# A generated CHANGELOG.md is the commit history rendered by git-cliff, and a
+# commit message is checked when it is written; a usage rule firing on a
+# subject line long after would refuse every regeneration. An empty
+# BasedOnStyles is Vale's own way to hand a file no style.
+[CHANGELOG.md]
+BasedOnStyles =
+{%- endif %}
 
 # The message git hands the commit-msg hook, at both paths pre-commit passes.
 # One published rule: the co-author trailers and generated-with lines a tool
