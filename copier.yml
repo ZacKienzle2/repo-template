@@ -76,6 +76,16 @@ has_import_linter:
   default: false
   when: "{{ has_python }}"
 
+mypy_overrides:
+  type: yaml
+  help: >-
+    Per-module mypy sections, as a YAML mapping of module pattern to options (numba.*: {ignore_missing_imports: true}),
+    rendered after the guide's global section in mypy.ini. mypy reads the first configuration file it finds and mypy.ini
+    comes before pyproject.toml, so a repository's own overrides live here rather than in a section that file would
+    shadow.
+  default: {}
+  when: "{{ has_python }}"
+
 has_notebooks:
   type: bool
   help: Does the repository hold Jupyter notebooks?
