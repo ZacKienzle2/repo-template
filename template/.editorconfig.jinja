@@ -57,8 +57,10 @@ indent_size = unset
 [*.ipynb]
 indent_size = unset
 
+# ruff format owns Python layout and leaves a docstring's own alignment as
+# written, which editorconfig-checker would otherwise read as a wrong indent.
 [*.py]
-indent_size = 4
+indent_size = unset
 
 [*.rs]
 indent_size = 4
