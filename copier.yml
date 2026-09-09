@@ -69,3 +69,19 @@ has_latex:
   type: bool
   help: Does the repository hold LaTeX?
   default: false
+
+latex_root:
+  type: str
+  help: >-
+    Which file does latexmk build? The LaTeX workflow hands it to latex-action's root_file and names the PDF artefact
+    after it.
+  default: main.tex
+  when: "{{ has_latex }}"
+
+latex_shell_escape:
+  type: bool
+  help: >-
+    Does the build need -shell-escape, as minted, tcolorbox listings and TikZ externalisation do? latexmk refuses the
+    switch unless latex-action is told to pass it.
+  default: false
+  when: "{{ has_latex }}"

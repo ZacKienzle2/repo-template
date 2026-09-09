@@ -1,0 +1,65 @@
+{#- Rendered for every repository that answered has_latex. latexmk runs inside
+    latex-action's full TeX Live image, so the engine, biblatex and biber come
+    from one release and agree on the control-file version, which a biber
+    installed beside a separate engine did not. pdflatex is latexmk's default
+    engine; a .latexmkrc in the repository is where that and anything else
+    latexmk reads changes, and the workflow reruns when it does. -#}
+{%- set document = latex_root | replace(".tex", "") -%}
+{%- set watched = ["**/*.tex", "**/*.bib", "**/*.cls", "**/*.sty", "**/*.bst", ".latexmkrc", ".github/workflows/latex.yml"] -%}
+name: LaTeX
+
+on:
+  push:
+    branches: [main]
+    paths:
+{%- for pattern in watched %}
+      - "{{ pattern }}"
+{%- endfor %}
+  pull_request:
+    branches: [main]
+    paths:
+{%- for pattern in watched %}
+      - "{{ pattern }}"
+{%- endfor %}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: {% raw %}latex-${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build {{ latex_root }} with TeX Live
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Build {{ latex_root }}
+        uses: xu-cheng/latex-action@6549dc21effb2730855a1281407ecfcececc6c1b # v4.1.0
+        with:
+          root_file: {{ latex_root }}
+          latexmk_shell_escape: {{ latex_shell_escape | lower }}
+          # -Werror: an undefined reference or citation, or a multiply defined
+          # label, fails the build (latexmk 4.69+).
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -Werror
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        if: always()
+        with:
+          name: {{ document }}
+          path: {{ document }}.pdf
+          if-no-files-found: warn
+          retention-days: 14
