@@ -1,0 +1,25 @@
+{#- Assembled from github/gitignore, the collection behind GitHub's own
+    "add .gitignore" control. The files under gitignore/ in the template
+    repository are upstream's, unedited, and which apply follows the same
+    answers as the rest of the template. Editor and operating system
+    byproducts are absent on purpose: upstream keeps those under Global/ for
+    a user's own core.excludesFile, which the dotfiles set on every machine.
+    A path only this repository produces belongs after the assembled block;
+    copier update carries forward the lines it did not write. -#}
+# Assembled by copier from github/gitignore; the source files are in the
+# template repository, not here. A path of this repository's own goes after
+# this block.
+{%- if has_python %}
+
+{% filter trim %}{% include "gitignore/Python.gitignore" %}{% endfilter %}
+{%- endif %}
+{%- if has_cpp %}
+
+{% filter trim %}{% include "gitignore/C++.gitignore" %}{% endfilter %}
+
+{% filter trim %}{% include "gitignore/CMake.gitignore" %}{% endfilter %}
+{%- endif %}
+{%- if has_latex %}
+
+{% filter trim %}{% include "gitignore/TeX.gitignore" %}{% endfilter %}
+{%- endif %}

@@ -1,0 +1,7 @@
+# typos skips a repository's own .gitignore through its ignore-hidden default.
+# The copies vendored under gitignore/ are the same lists of file extensions,
+# *.fot and *.thm among them, so the type they map to is not spell-checked
+# either.
+[type.gitignore]
+extend-glob = ["*.gitignore"]
+check-file = false
