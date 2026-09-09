@@ -1,0 +1,63 @@
+{#- Rendered from commit_types in copier.yml: the version resolver, the
+    categories and the autolabeler are three views of that one list. -#}
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+version-resolver:
+  major:
+    labels:
+      - "breaking"
+  minor:
+    labels:
+{%- for t in commit_types if t.bump == "minor" %}
+      - "{{ t.type }}"
+{%- endfor %}
+  patch:
+    labels:
+{%- for t in commit_types if t.bump == "patch" %}
+      - "{{ t.type }}"
+{%- endfor %}
+  default: patch
+
+categories:
+  - title: "Breaking Changes"
+    labels:
+      - "breaking"
+{%- for title in commit_types | map(attribute="title") | unique %}
+  - title: "{{ title }}"
+    labels:
+{%- for t in commit_types if t.title == title %}
+      - "{{ t.type }}"
+{%- endfor %}
+{%- endfor %}
+  - title: "Dependencies"
+    labels:
+      - "dependencies"
+
+change-template: "- $TITLE (#$NUMBER) by @$AUTHOR"
+change-title-escapes: '\<*_&'
+exclude-labels:
+  - "skip-changelog"
+
+autolabeler:
+  - label: "breaking"
+    title:
+      - '/^[a-z]+(\([^)]+\))?!:/'
+    body:
+      - "/BREAKING[ -]CHANGE:/"
+{%- for t in commit_types %}
+  - label: "{{ t.type }}"
+    title:
+      - "/^{{ t.type }}(\\([^)]+\\))?!?:/"
+{%- endfor %}
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
