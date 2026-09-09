@@ -1,0 +1,104 @@
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+          - ".github/dependabot.yml"
+          - ".github/labeler.yml"
+
+github-config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/ISSUE_TEMPLATE/**"
+          - ".github/PULL_REQUEST_TEMPLATE.md"
+          - ".github/CODEOWNERS"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/package.json"
+          - "**/package-lock.json"
+          - "**/yarn.lock"
+          - "**/pnpm-lock.yaml"
+          - "**/requirements*.txt"
+          - "**/pyproject.toml"
+          - "**/poetry.lock"
+          - "**/uv.lock"
+          - "**/Pipfile*"
+          - "**/Cargo.toml"
+          - "**/Cargo.lock"
+          - "**/go.mod"
+          - "**/go.sum"
+          - "**/Gemfile*"
+          - "**/composer.json"
+          - "**/composer.lock"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SECURITY.md"
+          - ".github/workflows/codeql*.yml"
+          - ".github/workflows/security*.yml"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+          - "test/**"
+          - "**/*_test.*"
+          - "**/*.test.*"
+          - "**/test_*.*"
+          - "**/spec/**"
+
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Makefile"
+          - "CMakeLists.txt"
+          - "**/CMakeLists.txt"
+          - "**/Dockerfile*"
+          - "**/docker-compose*.yml"
+          - ".dockerignore"
+{#- Language labels follow the answers; the labels themselves are declared in
+    labels.yml under the same conditions. -#}
+{%- if has_cpp %}
+
+cpp:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.{c,cc,cpp,cxx,h,hh,hpp,hxx,cu,cuh}"
+          - "**/CMakeLists.txt"
+          - "**/*.cmake"
+          - "CMakePresets.json"
+{%- endif %}
+{%- if has_python %}
+
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.py"
+          - "**/*.pyi"
+          - "pyproject.toml"
+          - ".python-version"
+{%- endif %}
+{%- if has_node %}
+
+javascript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.{js,mjs,cjs,jsx,ts,tsx,mts,cts}"
+          - "package.json"
+{%- endif %}
+{%- if has_latex %}
+
+latex:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.{tex,bib,cls,sty,bst}"
+{%- endif %}
