@@ -1,0 +1,18 @@
+# Rendered by copier once (_skip_if_exists) for a repository that had no
+# pyproject.toml; a repository's own is never touched by an update. ruff.toml
+# extends this file, so its [tool.ruff] is the rule selection, and the pytest
+# settings are the Scientific Python Development Guide's.
+[project]
+name = "{{ github_repository.split('/')[1] | lower | replace('-', '_') }}"
+version = "0.0.0"
+requires-python = ">={{ python_version }}"
+
+[tool.ruff]
+
+[tool.pytest.ini_options]
+minversion = "8"
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+xfail_strict = true
+filterwarnings = ["error"]
+log_cli_level = "INFO"
+testpaths = ["tests"]

@@ -21,6 +21,13 @@
 
 _answers_file: .copier-answers.yml
 
+# Rendered once, never updated: pyproject.toml is a repository's own file,
+# but ruff.toml extends it and mypy.ini stands in for its [tool.mypy], so a
+# repository rendered before `uv init` needs one to exist. A repository that
+# has one keeps it untouched.
+_skip_if_exists:
+  - pyproject.toml
+
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint. Without the split, yamllint and the
 # workflow schema check read the .jinja sources and reject the Jinja in them.

@@ -10,6 +10,11 @@
 # Assembled by copier from github/gitignore; the source files are in the
 # template repository, not here. A path of this repository's own is the
 # gitignore_own answer in .copier-answers.yml, rendered at the end.
+
+# vale's StylesPath, which .vale.ini sets and the sync hook fills on every
+# repository whatever its languages; the Python and C++ blocks below name the
+# same directory, the others do not.
+.cache/
 {%- if has_python %}
 
 {% filter trim %}{% include "gitignore/Python.gitignore" %}{% endfilter %}
