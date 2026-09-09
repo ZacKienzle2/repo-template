@@ -45,8 +45,8 @@ github_repository:
   type: str
   help: >-
     The repository as owner/name on GitHub. Issue form contact links, SUPPORT.md, CONTRIBUTING.md, CODEOWNERS and the
-    changelog's commit and compare links are built from it.
-  default: "ZacKienzle2/{{ (_copier_conf.dst_path | string).split('/') | last }}"
+    changelog's commit and compare links are built from it. No default: copier hands a template a pure path for the
+    destination, which cannot name the directory, so the first render is told and every update reads the answer back.
   validator: "{% if not github_repository or '/' not in github_repository %}owner/name{% endif %}"
 
 has_cpp:
