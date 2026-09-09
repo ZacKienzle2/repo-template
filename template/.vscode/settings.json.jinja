@@ -9,17 +9,17 @@
   "files.trimTrailingWhitespace": true,
   "files.trimFinalNewlines": true,
   "editor.formatOnSave": true,
-  "editor.rulers": [72, 100, 120],
-  "editor.tabSize": 4,
+  "editor.rulers": [commit_width, code_width, data_width],
+  "editor.tabSize": indent_width,
   "editor.insertSpaces": true,
   "git.enableSmartCommit": false,
   "git.confirmSync": true,
   "git.useEditorAsCommitInput": true,
-  "git.inputValidationLength": 72,
-  "git.inputValidationSubjectLength": 72,
+  "git.inputValidationLength": commit_width,
+  "git.inputValidationSubjectLength": commit_width,
   "[markdown]": {
     "editor.wordWrap": "off",
-    "editor.rulers": [80],
+    "editor.rulers": [prose_width],
     "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -52,11 +52,11 @@
 {%- if has_cpp -%}
 {%- set _ = settings.update({
   "[cpp]": {
-    "editor.tabSize": 4,
+    "editor.tabSize": indent_width,
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "[c]": {
-    "editor.tabSize": 4,
+    "editor.tabSize": indent_width,
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "[cmake]": {

@@ -78,6 +78,62 @@ has_node:
   help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and the labeler marks it.
   default: false
 
+# Values every rendered file agrees on. A question with `when: false` is never
+# asked and never recorded; its default is what every render uses, so the
+# template is the one place any of them changes. Before this, the YAML width
+# was 120 in prettier and .editorconfig but 140 in yamllint, and the commit
+# width was 72 in CONTRIBUTING.md and VS Code but 100 in commitlint.
+indent_width:
+  type: int
+  help: Indentation for code; .editorconfig, clang-format and VS Code read it.
+  default: 4
+  when: false
+
+code_width:
+  type: int
+  help: Where clang-format, cmake-format and ruff wrap code.
+  default: 100
+  when: false
+
+data_width:
+  type: int
+  help: Where prettier wraps YAML, JSON, JavaScript and CSS.
+  default: 120
+  when: false
+
+prose_width:
+  type: int
+  help: Where prettier wraps Markdown prose.
+  default: 80
+  when: false
+
+commit_width:
+  type: int
+  help: commitlint's limit for the header and each body line, which is git's own convention.
+  default: 72
+  when: false
+
+commit_types:
+  type: yaml
+  help: >-
+    Conventional Commits types as @commitlint/config-conventional's type-enum publishes them, each with the
+    release-notes section it files under and the SemVer bump the specification assigns (feat is minor, fix and perf are
+    patch; a breaking change is major through the breaking label). The labels, the release drafter and its autolabeler
+    all render from this one list.
+  default:
+    - { type: feat, title: New Features, bump: minor, color: "a2eeef" }
+    - { type: fix, title: Bug Fixes, bump: patch, color: "d73a4a" }
+    - { type: perf, title: Performance, bump: patch, color: "fbca04" }
+    - { type: docs, title: Documentation, bump: none, color: "0075ca" }
+    - { type: refactor, title: Maintenance, bump: none, color: "c5def5" }
+    - { type: test, title: Maintenance, bump: none, color: "bfd4f2" }
+    - { type: build, title: Maintenance, bump: none, color: "fef2c0" }
+    - { type: ci, title: Maintenance, bump: none, color: "fef2c0" }
+    - { type: chore, title: Maintenance, bump: none, color: "ededed" }
+    - { type: style, title: Maintenance, bump: none, color: "ededed" }
+    - { type: revert, title: Maintenance, bump: none, color: "ededed" }
+  when: false
+
 has_latex:
   type: bool
   help: Does the repository hold LaTeX?

@@ -1,0 +1,8 @@
+{#- prettier's defaults are the base. The widths are the template's, so
+    .editorconfig and the editor rulers state the same numbers. -#}
+proseWrap: always
+printWidth: {{ prose_width }}
+overrides:
+  - files: ["*.yml", "*.yaml", ".clang-*", "*.cff"]
+    options:
+      printWidth: {{ data_width }}

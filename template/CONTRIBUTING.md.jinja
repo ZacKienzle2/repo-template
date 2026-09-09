@@ -147,9 +147,9 @@ Allowed types: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`,
 
 Rules:
 
-- Subject: imperative, lowercase, no trailing period, 72 characters or fewer.
+- Subject: imperative, lowercase, no trailing period, {{ commit_width }} characters or fewer.
 - Blank line between subject, body, and footers.
-- Body: wrap at 72 characters. Explain motivation and contrast with prior
+- Body: wrap at {{ commit_width }} characters. Explain motivation and contrast with prior
   behaviour. Do not restate the diff.
 - One logical change per commit. `fix` only for real defects.
 - Breaking changes: append `!` after the type or include a `BREAKING CHANGE:`
