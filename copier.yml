@@ -27,15 +27,12 @@ _answers_file: .copier-answers.yml
 _subdirectory: template
 
 _message_after_copy: |
-  Written. Three things follow, in every clone:
+  Written. Two things follow, in every clone:
 
     pre-commit install --install-hooks
-    pre-commit run vale-sync --files .vale.ini
     uvx --from 'sp-repo-review[cli]' repo-review .
 
-  The second installs the styles .vale.ini names, which vale reads from
-  .cache/vale/styles and which no hook installs on its own until .vale.ini
-  changes. The third reports this repository against the Scientific Python
+  The second reports this repository against the Scientific Python
   Development Guide, which is the published standard these settings answer
   to.
 
