@@ -1,0 +1,87 @@
+{#- Editor settings that say what the hooks enforce, so a save agrees with
+    the commit. Built as a mapping and serialised, so a conditional block
+    needs no comma bookkeeping. Machine paths, a clangd driver or a compile
+    commands directory, belong in .clangd, which clangd documents, not here. -#}
+{%- set settings = {
+  "files.eol": "\n",
+  "files.encoding": "utf8",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+  "editor.formatOnSave": true,
+  "editor.rulers": [72, 100, 120],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "git.enableSmartCommit": false,
+  "git.confirmSync": true,
+  "git.useEditorAsCommitInput": true,
+  "git.inputValidationLength": 72,
+  "git.inputValidationSubjectLength": 72,
+  "[markdown]": {
+    "editor.wordWrap": "off",
+    "editor.rulers": [80],
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[toml]": {
+    "editor.tabSize": 2
+  }
+} -%}
+{%- if has_python -%}
+{%- set _ = settings.update({
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  }
+}) -%}
+{%- endif -%}
+{%- if has_cpp -%}
+{%- set _ = settings.update({
+  "[cpp]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "[c]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "[cmake]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "cheshirekow.cmake-format"
+  },
+  "cmake.configureOnOpen": false,
+  "cmake.useCMakePresets": "always"
+}) -%}
+{%- endif -%}
+{%- if has_latex -%}
+{%- set _ = settings.update({
+  "[latex]": {
+    "editor.tabSize": 2
+  },
+  "[bibtex]": {
+    "editor.tabSize": 2
+  }
+}) -%}
+{%- endif -%}
+{%- set _ = settings.update({
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
+    "https://json.schemastore.org/dependabot-2.0.json": ".github/dependabot.yml",
+    "https://json.schemastore.org/github-issue-forms.json": ".github/ISSUE_TEMPLATE/*.yml"
+  }
+}) -%}
+{{ settings | tojson(indent=2) }}

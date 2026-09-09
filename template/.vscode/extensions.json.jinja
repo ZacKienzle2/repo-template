@@ -1,0 +1,40 @@
+{#- One extension per tool the hooks run, so the editor shows the same
+    findings the commit will. Built as lists and serialised. -#}
+{%- set recommended = [
+  "editorconfig.editorconfig",
+  "esbenp.prettier-vscode",
+  "davidanson.vscode-markdownlint",
+  "redhat.vscode-yaml",
+  "tamasfe.even-better-toml",
+  "tekumara.typos-vscode",
+  "chrischinchilla.vale-vscode",
+  "ltex-plus.vscode-ltex-plus",
+  "github.vscode-github-actions",
+  "github.vscode-pull-request-github",
+  "eamodio.gitlens",
+  "vivaxy.vscode-conventional-commits"
+] -%}
+{%- set unwanted = [] -%}
+{%- if has_python -%}
+{%- set _ = recommended.extend(["ms-python.python", "charliermarsh.ruff"]) -%}
+{%- endif -%}
+{%- if has_notebooks -%}
+{%- set _ = recommended.extend(["ms-toolsai.jupyter"]) -%}
+{%- endif -%}
+{%- if has_cpp -%}
+{%- set _ = recommended.extend([
+  "llvm-vs-code-extensions.vscode-clangd",
+  "ms-vscode.cmake-tools",
+  "twxs.cmake",
+  "cheshirekow.cmake-format",
+  "vadimcn.vscode-lldb"
+]) -%}
+{%- set _ = unwanted.extend(["ms-vscode.cpptools"]) -%}
+{%- endif -%}
+{%- if has_latex -%}
+{%- set _ = recommended.extend(["james-yu.latex-workshop"]) -%}
+{%- endif -%}
+{%- if has_node -%}
+{%- set _ = recommended.extend(["dbaeumer.vscode-eslint", "stylelint.vscode-stylelint"]) -%}
+{%- endif -%}
+{{ {"recommendations": recommended, "unwantedRecommendations": unwanted} | tojson(indent=2) }}
