@@ -1,0 +1,11 @@
+# A published style plus the three values the rest of the template shares.
+# Chromium was chosen by measurement: over Orderbooks' 70 C++ files it
+# reproduced the tree with 1,087 changed lines against 1,488 for LLVM, 2,058
+# for Google and 4,000 to 14,000 for Mozilla, WebKit, Microsoft and GNU, so it
+# is the closest published description of how this code is written.
+---
+Language: Cpp
+BasedOnStyle: Chromium
+Standard: c++20
+ColumnLimit: {{ code_width }}
+IndentWidth: {{ indent_width }}
