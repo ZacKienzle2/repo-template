@@ -1,0 +1,16 @@
+{#- typos' own configuration. Its defaults already skip lock files and
+    certificates, whatever .gitignore names, and hidden files, so no path list
+    repeats those. A repository's vocabulary goes after this block under
+    [default.extend-words] or [default.extend-identifiers], which copier
+    update carries forward. -#}
+# Managed by copier from ZacKienzle2/repo-template. A repository's own words go
+# under [default.extend-words] after this block.
+{%- if has_generated_changelog %}
+
+# A generated CHANGELOG.md carries short commit hashes as link text, and typos
+# reads the letters in one as a word. A type of its own, unchecked, is typos'
+# way to leave a generated file alone.
+[type.changelog]
+extend-glob = ["CHANGELOG.md"]
+check-file = false
+{%- endif %}
