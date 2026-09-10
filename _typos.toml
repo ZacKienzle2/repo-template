@@ -5,3 +5,8 @@
 [type.gitignore]
 extend-glob = ["*.gitignore"]
 check-file = false
+
+# The LaTeX label patterns in template/_typos.toml.jinja list theorem
+# environment names, and thm is one of those names rather than a misspelling.
+[default.extend-words]
+thm = "thm"
