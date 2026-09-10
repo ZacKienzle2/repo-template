@@ -21,3 +21,37 @@ check-file = false
 extend-glob = ["CHANGELOG.md"]
 check-file = false
 {%- endif %}
+{%- if has_latex %}
+
+# A .bib composed from registrar records carries author surnames, abbreviated
+# journal titles and abstracts verbatim, so a spelling there is the registrar's
+# to correct. A .bst is a BibTeX style program the TeX distribution ships, and
+# the abbreviated journal titles in it are its data.
+[type.bibtex]
+extend-glob = ["*.bib"]
+check-file = false
+
+[type.bibtexstyle]
+extend-glob = ["*.bst"]
+check-file = false
+{%- endif %}
+{%- if has_cpp %}
+
+# A Doxyfile is written by `doxygen -g` and its comments are Doxygen's own prose.
+[type.doxyfile]
+extend-glob = ["Doxyfile"]
+check-file = false
+{%- endif %}
+{%- if has_latex %}
+
+# A cross-reference carries a label rather than prose, and \Cref{thm:Name} reads
+# as the word "thm". Matching the commands that take a label leaves the text
+# around them checked, which a path exclusion would not.
+[default]
+extend-ignore-re = [
+  '\\(?:label|ref|Cref|cref|eqref|autoref|nameref|pageref|pagenumbering)\{[^}]*\}',
+  '\\(?:newtheorem|theoremstyle|AtBeginEnvironment|AtEndEnvironment)\{[^}]*\}',
+  '\\(?:begin|end)\{(?:thm|lem|cor|prop|defn|rem)[^}]*\}',
+  '\\frac\{[^}]*\}\{[^}]*\}',
+]
+{%- endif %}

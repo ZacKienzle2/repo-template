@@ -21,8 +21,18 @@ trim_trailing_whitespace = false
 [*.{yml,yaml,json,toml,cff}]
 indent_size = 2
 
-[.clang-*]
+# The glob is .clang* rather than .clang-* because the hyphenated form matches
+# .clang-format and .clang-tidy and misses .clangd, which has no hyphen and is
+# YAML like the other two. editorconfig-checker reported every indented line in
+# that file as wrong because it fell through to the four-space default above.
+[.clang*]
 indent_size = 2
+
+# A Jinja template carries the indentation of the language it renders, offset by
+# whatever the surrounding template blocks need, so its own lines do not sit on
+# any single grid.
+[*.jinja]
+indent_size = unset
 
 # max_line_length is set only where a formatter reads it. prettier takes its
 # print width from here for these languages; ruff, clang-format and

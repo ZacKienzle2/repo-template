@@ -111,6 +111,28 @@ gitignore_own:
     entirely the template's and copier update never has to carry a hand-written tail forward.
   default: []
 
+gitattributes_own:
+  type: yaml
+  help: >-
+    Attribute lines only this repository needs, as a YAML list ("*.pdf filter=lfs diff=lfs merge=lfs -text"), rendered
+    after the blocks assembled from gitattributes/gitattributes. Git LFS filters for files at the root are the case a
+    nested .gitattributes cannot serve, since the root file is the template's.
+  default: []
+
+has_ast_grep:
+  type: bool
+  help: >-
+    Does the repository keep ast-grep rules, with sgconfig.yml at the root? ast-grep then scans C, C++, CUDA and Python
+    as a hook, since it matches the syntax tree and needs no compilation database.
+  default: false
+
+has_adrs:
+  type: bool
+  help: >-
+    Does the repository keep MADR architecture decision records under docs/adr? Vale then applies the ai-tells style to
+    them, since every record is written now rather than inherited.
+  default: false
+
 # Values every rendered file agrees on. A question with `when: false` is never
 # asked and never recorded; its default is what every render uses, so the
 # template is the one place any of them changes. Before this, the YAML width

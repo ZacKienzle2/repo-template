@@ -3,11 +3,12 @@
     gitattributes/ in the template repository are upstream's, unedited, and
     refreshing one is fetching the same path from upstream again. Which
     ones apply follows the same answers as the rest of the template. Rules
-    a repository needs beyond these, LFS filters or linguist overrides,
-    belong in a .gitattributes beside the files they cover, which git reads
-    as well. -#}
+    a repository needs beyond these, such as Git LFS filters for files at the
+    root, are the gitattributes_own answer, rendered after the assembled
+    blocks, so nothing in this file is written by hand. -#}
 # Assembled by copier from github.com/gitattributes/gitattributes; the source
-# files are in the template repository, not here.
+# files are in the template repository, not here. A rule of this repository's
+# own is the gitattributes_own answer in .copier-answers.yml, rendered at the end.
 {% include "gitattributes/Common.gitattributes" %}
 {%- if has_cpp %}
 
@@ -16,4 +17,11 @@
 {%- if has_python %}
 
 {% include "gitattributes/Python.gitattributes" %}
+{%- endif %}
+{%- if gitattributes_own %}
+
+# This repository's own, the gitattributes_own answer in .copier-answers.yml.
+{%- for rule in gitattributes_own %}
+{{ rule }}
+{%- endfor %}
 {%- endif %}

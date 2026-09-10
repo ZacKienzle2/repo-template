@@ -76,7 +76,27 @@ repos:
         name: Disallow improper capitalization
         language: pygrep
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
+{%- if has_latex %}
+        # A citation key is an identifier generated from a title, so
+        # harrisArrayProgrammingNumpy2020 is camel case by construction, and a
+        # .bib is left out for the reason _typos.toml leaves it unchecked.
+        exclude: \.pre-commit-config\.yaml(\.jinja)?$|\.bib$
+{%- else %}
         exclude: \.pre-commit-config\.yaml(\.jinja)?$
+{%- endif %}
+{%- if has_ast_grep %}
+
+      # ast-grep matches the syntax tree, so a rule does not fire inside a
+      # string or a comment and needs no regex approximating C++ or Python
+      # grammar. It also needs no compilation database, so it reaches sources no
+      # CMake target builds. Rules are in the directories sgconfig.yml names.
+      - id: ast-grep
+        name: ast-grep structural rules
+        language: system
+        entry: ast-grep scan
+        pass_filenames: false
+        types_or: [c++, c, cuda, python]
+{%- endif %}
 
 {%- if has_python %}
 
@@ -87,6 +107,18 @@ repos:
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
         types_or: [python, pyi, jupyter, markdown, pyproject]
+
+  # pydoclint compares each docstring's Args, Returns, Raises and Attributes
+  # sections with the signature and body, which ruff's stable pydocstyle rules
+  # do not, and ruff's own DOC port is preview-only. The hook reads
+  # [tool.pydoclint] from pyproject.toml through --config, the pre-commit setup
+  # pydoclint's documentation gives, so the docstring style stays in the file a
+  # repository already owns.
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 0.9.1
+    hooks:
+      - id: pydoclint
+        args: [--config=pyproject.toml]
 
   # uv's own hook refuses a commit whose uv.lock no longer matches
   # pyproject.toml, so the lock file the CI jobs sync from is never stale.
@@ -174,6 +206,23 @@ repos:
     hooks:
       - id: cppcheck
         stages: [manual]
+        # cppcheck maps .h to C by default, so every header was analysed as C
+        # and reported parse failures rather than being checked. --language=c++
+        # with the standard .clang-format states is what makes the tool see a
+        # C++ codebase. missingInclude and missingIncludeSystem are off because
+        # cppcheck is given no compilation database and cannot resolve the
+        # toolchain's headers, and inline-suppr keeps the tool's own documented
+        # suppression comments working.
+        args:
+          [
+            "--language=c++",
+            "--std=c++20",
+            "--enable=warning,style,performance,portability",
+            "--inline-suppr",
+            "--suppress=missingInclude",
+            "--suppress=missingIncludeSystem",
+            "--suppress=checkersReport",
+          ]
 {%- endif %}
 {%- if has_latex %}
 

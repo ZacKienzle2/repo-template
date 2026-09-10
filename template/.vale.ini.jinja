@@ -30,7 +30,7 @@ MinAlertLevel = suggestion
 # ai-tells-commits is not in Vale's package catalog, so it installs by URL, in
 # the unpinned /releases/latest/download form the catalog uses for every other
 # entry, so a new upstream release arrives on the next sync.
-Packages = proselint, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells-commits.zip
+Packages = proselint, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells-commits.zip{% if has_adrs %}, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells.zip{% endif %}
 
 # The commit message file has no extension. Read as Markdown, which is what a
 # commit message is.
@@ -49,6 +49,39 @@ BasedOnStyles = proselint
 # way to tell those from the real thing. It stays visible while writing and
 # stops failing a commit.
 proselint.Typography = warning
+{%- if has_adrs %}
+
+# Architecture decision records are the one body of prose here that is written
+# now rather than inherited, so the full ai-tells set applies to them. The
+# reasoning in the Style note above is about gating whole repositories of older
+# writing, and it does not apply to a directory whose every file is current.
+#
+# The rules turned off below are turned off on the style's own advice. Each of
+# their messages names the domain it misfires on, and this is that domain. An
+# array shape is a shape, a sample that falls inside an acceptance region is
+# the standard phrasing for rejection sampling, a cache entry that survives a
+# rebuild is process-lifecycle prose, and a decision record exists to say what
+# an implementation implements. The two punctuation rules fire on the colon in
+# a paper title and on the semicolon separating two citations, neither of which
+# is the AI punctuation the rule looks for.
+[docs/adr/*.md]
+BasedOnStyles = proselint, ai-tells
+proselint.Typography = warning
+ai-tells.FormalRegister = NO
+ai-tells.FigurativeShape = NO
+ai-tells.FigurativeFalls = NO
+ai-tells.MortalityMetaphors = NO
+ai-tells.BareHolds = NO
+ai-tells.ColonUsage = NO
+ai-tells.SemicolonUsage = NO
+
+# MADR ships the template and the directory README. Both are upstream files, so
+# they are read rather than written here, and a prose rule firing on them would
+# ask for an edit that the next template update reverts.
+[docs/adr/{adr-template,README}.md]
+BasedOnStyles = proselint
+proselint.Typography = warning
+{%- endif %}
 {%- if has_generated_changelog %}
 
 # A generated CHANGELOG.md is the commit history rendered by git-cliff, and a
