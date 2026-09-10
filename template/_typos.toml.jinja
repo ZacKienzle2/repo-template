@@ -44,12 +44,15 @@ check-file = false
 {%- endif %}
 {%- if has_latex %}
 
-# A cross-reference carries a label rather than prose, and \Cref{lem:Name} reads
-# as the word "lem". Matching the commands that take a label leaves the text
-# around them checked, which a path exclusion would not.
+# A cross-reference or a citation carries a key rather than prose, and
+# \Cref{lem:Name} reads as the word "lem". A key a registrar composes from an
+# accented surname reads the same way once the accent is dropped. Matching the
+# commands that take a key leaves the text around them checked, which a path
+# exclusion would not.
 [default]
 extend-ignore-re = [
   '\\(?:label|ref|Cref|cref|eqref|autoref|nameref|pageref|pagenumbering)\{[^}]*\}',
+  '\\(?:no)?cite[a-zA-Z]*\*?(?:\[[^\]]*\])*\{[^}]*\}',
   '\\(?:newtheorem|theoremstyle|AtBeginEnvironment|AtEndEnvironment)\{[^}]*\}',
   '\\(?:begin|end)\{(?:thm|lem|cor|prop|defn|rem)[^}]*\}',
   '\\frac\{[^}]*\}\{[^}]*\}',
