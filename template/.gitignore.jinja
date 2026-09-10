@@ -28,6 +28,14 @@
 {%- if has_latex %}
 
 {% filter trim %}{% include "gitignore/TeX.gitignore" %}{% endfilter %}
+
+# memoize externalises each memoised graphic to its own PDF and records the
+# hashes beside it, so a build leaves a .mmz file and a .memo.dir tree of .memo
+# and .pdf pairs. github/gitignore's TeX template predates the package and names
+# none of them.
+*.mmz
+*.memo
+*.memo.dir/
 {%- endif %}
 {%- if gitignore_own %}
 
