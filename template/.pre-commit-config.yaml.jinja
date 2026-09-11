@@ -139,6 +139,19 @@ repos:
       - id: mypy
         stages: [manual]
 
+  # pyright reports no errors in its standard mode on the first repository to
+  # take this hook, so it gates the commit from the start. Static checkers found
+  # 29 of 40 real type bugs once code was annotated, against 14 before, and
+  # their checking strategies differ (Xu et al., doi:10.1109/icpc58990.2023.00039),
+  # so pyright runs beside mypy rather than instead of it. The hook's own
+  # environment cannot see the project's packages, and pyright-python's README
+  # fixes that by naming the project's virtual environment in [tool.pyright].
+  # CI runs the hook in the Python workflow, after uv has synced it.
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.414
+    hooks:
+      - id: pyright
+
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: "0.26"
     hooks:

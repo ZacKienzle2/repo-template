@@ -1,8 +1,10 @@
 {#- The test suite of a Python repository, run in the project's own
     environment from its lock file. Ruff, mypy and the other checks are hooks
-    and run in the CI workflow, so nothing is run twice. A repository's other
-    Python jobs, a notebook execution or a coverage upload to a service, are
-    its own workflows beside this one. -#}
+    and run in the CI workflow, so nothing is run twice. pyright is the one hook
+    that needs this environment, so it runs here through pre-commit, at the
+    version .pre-commit-config.yaml pins, and the CI workflow skips it. A
+    repository's other Python jobs, a notebook execution or a coverage upload to
+    a service, are its own workflows beside this one. -#}
 name: Python
 
 on:
@@ -14,6 +16,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".python-version"
+      - ".pre-commit-config.yaml"
       - ".github/workflows/python.yml"
   workflow_dispatch: {}
 
@@ -50,6 +53,16 @@ jobs:
 
       - name: Sync dependencies
         run: uv sync --frozen --all-extras
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+
+      - name: Type-check with pyright
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        with:
+          extra_args: pyright --all-files
 
       - name: Run the test suite
         run: uv run pytest

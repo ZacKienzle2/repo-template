@@ -16,3 +16,11 @@ xfail_strict = true
 filterwarnings = ["error"]
 log_cli_level = "INFO"
 testpaths = ["tests"]
+
+# pyright-python's pre-commit hook runs in an environment of its own that
+# cannot see the project's packages, and its README's fix is to name the
+# virtual environment uv syncs. Both values are relative, so every checkout
+# resolves the same one.
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
