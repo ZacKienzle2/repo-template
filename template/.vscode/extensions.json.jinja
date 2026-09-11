@@ -1,5 +1,6 @@
 {#- One extension per tool the hooks run, so the editor shows the same
-    findings the commit will. Built as lists and serialised. -#}
+    findings the commit will, plus the grammar checkers no hook runs. Built as
+    lists and serialised. -#}
 {%- set recommended = [
   "editorconfig.editorconfig",
   "esbenp.prettier-vscode",
@@ -32,7 +33,7 @@
 {%- set _ = unwanted.extend(["ms-vscode.cpptools"]) -%}
 {%- endif -%}
 {%- if has_latex -%}
-{%- set _ = recommended.extend(["james-yu.latex-workshop"]) -%}
+{%- set _ = recommended.extend(["james-yu.latex-workshop", "elijah-potter.harper"]) -%}
 {%- endif -%}
 {%- if has_node -%}
 {%- set _ = recommended.extend(["dbaeumer.vscode-eslint", "stylelint.vscode-stylelint"]) -%}

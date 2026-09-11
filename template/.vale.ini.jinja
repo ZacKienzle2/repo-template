@@ -38,10 +38,10 @@ Packages = proselint, https://github.com/tbhb/vale-ai-tells/releases/latest/down
 COMMIT_EDITMSG = md
 
 # Markdown alone. Vale has no LaTeX grammar and reads .tex comments and math
-# as prose, which is textidote's job, and the .txt files in these repositories
-# are verbatim third-party documents rather than anyone's writing. Both are
-# left out by not being handed to Vale rather than by a list of excluded
-# paths.
+# as prose, so grammar in .tex is left to LTeX+, which parses LaTeX.
+# The .txt files in these repositories are verbatim third-party documents
+# rather than anyone's writing. Both are left out by not being handed to Vale
+# rather than by a list of excluded paths.
 [*.md]
 BasedOnStyles = proselint
 # The same missing math grammar reaches Markdown. Vale reads $\tilde{V}(C)$
