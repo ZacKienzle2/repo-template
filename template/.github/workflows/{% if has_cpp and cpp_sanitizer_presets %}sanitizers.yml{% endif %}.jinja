@@ -1,9 +1,10 @@
 {#- Runtime checks for a C or C++ repository, one job per CMake workflow preset
     the repository answers with. Each preset chains the configure, build and
     test presets in the repository's CMakePresets.json, which carry the
-    -fsanitize flags and the sanitizer runtime options, and the compiler and
-    libraries come from the repository's own .github/actions/setup-cpp. This
-    file names nothing but the preset and the compiler input.
+    -fsanitize flags and the sanitizer runtime options. The repository's own
+    .github/actions/setup-cpp installs the compiler and libraries and reports
+    the compiler as its cc and cxx outputs, which reach CMake as CC and CXX, so
+    this file names nothing but the preset and the compiler input.
 
     Sanitizers observe the execution itself, so they find bugs that static
     analysis misses (Song et al., doi:10.1109/sp.2019.00010). A ThreadSanitizer
@@ -62,16 +63,19 @@ jobs:
         with:
           persist-credentials: false
 
+      # The compiler travels as step outputs rather than through GITHUB_ENV,
+      # which is how zizmor's github-env audit says to pass state between steps.
       - name: Install the compiler and libraries
+        id: setup
         uses: ./.github/actions/setup-cpp
         with:
           compiler: {% raw %}${{ matrix.compiler }}{% endraw %}
           ccache-key: {% raw %}sanitizers-${{ matrix.preset }}{% endraw %}
 
-      # cmake --workflow runs the preset's configure, build and test steps in
-      # the order CMakePresets.json lists them.
       - name: Configure, build and test
         working-directory: {{ cpp_source_dir }}
         env:
+          CC: {% raw %}${{ steps.setup.outputs.cc }}{% endraw %}
+          CXX: {% raw %}${{ steps.setup.outputs.cxx }}{% endraw %}
           PRESET: {% raw %}${{ matrix.preset }}{% endraw %}
         run: cmake --workflow --preset "$PRESET"

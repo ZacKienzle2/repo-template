@@ -77,7 +77,8 @@ cpp_sanitizer_presets:
     Which CMake workflow presets run under sanitizers, as a YAML mapping of preset name to the compiler input of the
     repository's own .github/actions/setup-cpp action ({asan-ubsan: gcc-13, tsan: clang-18})? A workflow preset chains
     the configure, build and test presets that carry the sanitizer flags and runtime options, so CMakePresets.json stays
-    the one place they are written and the action the one place the toolchain is. An empty mapping renders no workflow.
+    the one place they are written. The action installs the toolchain and reports its compilers as cc and cxx outputs,
+    which the workflow hands CMake as CC and CXX. An empty mapping renders no workflow.
   default: {}
   when: "{{ has_cpp }}"
 
