@@ -1,0 +1,77 @@
+{#- Runtime checks for a C or C++ repository, one job per CMake workflow preset
+    the repository answers with. Each preset chains the configure, build and
+    test presets in the repository's CMakePresets.json, which carry the
+    -fsanitize flags and the sanitizer runtime options, and the compiler and
+    libraries come from the repository's own .github/actions/setup-cpp. This
+    file names nothing but the preset and the compiler input.
+
+    Sanitizers observe the execution itself, so they find bugs that static
+    analysis misses (Song et al., doi:10.1109/sp.2019.00010). A ThreadSanitizer
+    preset built with clang loads Archer from LLVM's OpenMP runtime, which
+    annotates OpenMP synchronisation for race detection (Archer's README, and
+    Atzeni et al., doi:10.1109/ipdps.2016.68). A push to main runs the job as
+    well as a pull request, because a repository that commits to main directly
+    would otherwise never run it. -#}
+{%- macro paths_filter() %}
+{%- if cpp_source_dir not in [".", ""] %}
+    paths:
+      - "{{ cpp_source_dir }}/**"
+      - ".github/actions/setup-cpp/**"
+      - ".github/workflows/sanitizers.yml"
+{%- endif %}
+{%- endmacro %}
+name: Sanitizers
+
+on:
+  pull_request:
+    branches: [main]
+{{- paths_filter() }}
+  push:
+    branches: [main]
+{{- paths_filter() }}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: {% raw %}sanitizers-${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
+jobs:
+  sanitize:
+    name: {% raw %}${{ matrix.preset }}{% endraw %}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+{%- for preset, compiler in cpp_sanitizer_presets.items() %}
+          - preset: {{ preset | tojson }}
+            compiler: {{ compiler | tojson }}
+{%- endfor %}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install the compiler and libraries
+        uses: ./.github/actions/setup-cpp
+        with:
+          compiler: {% raw %}${{ matrix.compiler }}{% endraw %}
+          ccache-key: {% raw %}sanitizers-${{ matrix.preset }}{% endraw %}
+
+      # cmake --workflow runs the preset's configure, build and test steps in
+      # the order CMakePresets.json lists them.
+      - name: Configure, build and test
+        working-directory: {{ cpp_source_dir }}
+        env:
+          PRESET: {% raw %}${{ matrix.preset }}{% endraw %}
+        run: cmake --workflow --preset "$PRESET"
