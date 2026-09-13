@@ -152,6 +152,14 @@ has_adrs:
     them, since every record is written now rather than inherited.
   default: false
 
+has_cog:
+  type: bool
+  help: >-
+    Do Markdown files carry Cog blocks that generate sections from the files they describe? cog --check then runs as a
+    hook through the docs dependency group of pyproject.toml, so a section that no longer matches its source fails the
+    commit instead of going stale.
+  default: false
+
 # Values every rendered file agrees on. A question with `when: false` is never
 # asked and never recorded; its default is what every render uses, so the
 # template is the one place any of them changes. Before this, the YAML width

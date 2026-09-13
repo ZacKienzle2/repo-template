@@ -331,6 +331,20 @@ repos:
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
+{%- if has_cog %}
+
+  # Cog regenerates the Markdown sections between its markers from the files
+  # they describe, and --check fails when a committed section differs from what
+  # those files give now. Cog publishes no hook, and the generators import what
+  # the docs dependency group declares, so the hook runs through uv.lock.
+  - repo: local
+    hooks:
+      - id: cog
+        name: cog
+        entry: uv run --frozen --group docs cog --check --diff --check-fail-msg="run uv run --group docs cog -r on the file"
+        language: system
+        files: '\.md$'
+{%- endif %}
 
   # shfmt reads .editorconfig for its indent and style when given no flags,
   # so the shell scripts follow the same file every other language does.
