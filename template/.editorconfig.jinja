@@ -77,6 +77,11 @@ indent_size = unset
 [*.{tex,sty,cls,bib}]
 indent_size = 2
 
+# tex-fmt writes CRLF on Windows and refuses LF there, so the line ending
+# of the files it formats is its own. .gitattributes stores them with LF.
+[*.{tex,sty,cls}]
+end_of_line = unset
+
 [*.rs]
 indent_size = 4
 

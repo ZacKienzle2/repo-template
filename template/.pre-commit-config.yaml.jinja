@@ -42,6 +42,13 @@ repos:
       - id: forbid-submodules
       - id: mixed-line-ending
         args: ["--fix=lf"]
+{%- if has_latex %}
+        # tex-fmt 0.5.7 writes the platform's line ending, CRLF on Windows, and
+        # refuses an LF file there, so this fix and tex-fmt undid each other on
+        # every run. `* text=auto` in .gitattributes stores .tex, .sty and .cls
+        # with LF whatever the working tree holds.
+        exclude: \.(tex|sty|cls)$
+{%- endif %}
       - id: trailing-whitespace
         args: ["--markdown-linebreak-ext=md"]
       - id: end-of-file-fixer
@@ -59,6 +66,12 @@ repos:
     hooks:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
+{%- if has_generated_changelog %}
+        # CHANGELOG.md is git-cliff's output, and prettier rewrapped its
+        # paragraphs and split its list items on the first regeneration, which
+        # the release workflow would then undo.
+        exclude: ^CHANGELOG\.md$
+{%- endif %}
 
   # taplo formats TOML, which prettier does not read: pyproject, ruff, typos,
   # lychee and cliff. uv.lock is uv's own output; taplo's defaults leave lock
