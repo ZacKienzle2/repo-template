@@ -77,6 +77,12 @@ indent_size = unset
 [*.{tex,sty,cls,bib}]
 indent_size = 2
 
+# No formatter writes BibTeX style files. A style derived from abbrv.bst and
+# unsrt.bst continues a MACRO body on a line one space in, which no indent
+# width describes, and "unset" leaves the width to the file.
+[*.bst]
+indent_size = unset
+
 # tex-fmt writes CRLF on Windows and refuses LF there, so the line ending
 # of the files it formats is its own. .gitattributes stores them with LF.
 [*.{tex,sty,cls}]
