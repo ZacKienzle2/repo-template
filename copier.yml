@@ -158,7 +158,8 @@ has_adrs:
   type: bool
   help: >-
     Does the repository keep MADR architecture decision records under docs/adr? Vale then applies the ai-tells style to
-    them, since every record is written now rather than inherited.
+    them, since every record is written now rather than inherited, and markdownlint requires the sections the MADR
+    template does not mark optional.
   default: false
 
 has_cog:

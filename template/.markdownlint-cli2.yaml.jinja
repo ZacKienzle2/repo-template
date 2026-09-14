@@ -27,3 +27,24 @@ config:
   # rule against consecutive ones would fail on every regeneration.
   MD012: false
 {%- endif %}
+{%- if has_adrs %}
+
+# The MADR template marks every section optional except the problem statement,
+# the considered options and the decision outcome, so MD043 requires those three
+# in that order below the title of each numbered record. The filter leaves out
+# the template and the README that MADR ships beside the records.
+overrides:
+  - filter:
+      - "docs/adr/[0-9]*.md"
+    combine: merge
+    config:
+      MD043:
+        headings:
+          - "?"
+          - "## Context and Problem Statement"
+          - "*"
+          - "## Considered Options"
+          - "*"
+          - "## Decision Outcome"
+          - "*"
+{%- endif %}
