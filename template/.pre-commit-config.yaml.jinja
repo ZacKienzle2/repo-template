@@ -187,6 +187,33 @@ repos:
         pass_filenames: false
         files: ^(.*\.py|\.importlinter)$
 {%- endif %}
+{%- if has_snakemake %}
+
+  # snakefmt and snakemake --lint are the formatter and linter Molder et al.
+  # give for a workflow's code quality (doi:10.12688/f1000research.29032.3,
+  # section 2.2.2). snakefmt runs as its README's hook. Its default width is 88,
+  # and the flag carries the width ruff and clang-format wrap at to every file
+  # of an invocation.
+  - repo: https://github.com/snakemake/snakefmt
+    rev: v2.0.3
+    hooks:
+      - id: snakefmt
+        args: ["--line-length={{ code_width }}"]
+
+  # The linter parses the whole workflow, so it runs once through uv.lock,
+  # which declares snakemake and the modules the Snakefile imports. It exits 1
+  # while any rule lacks a software environment, so it waits at the manual stage
+  # as mypy does: `pre-commit run snakemake-lint --hook-stage manual --all-files`.
+  - repo: local
+    hooks:
+      - id: snakemake-lint
+        name: snakemake --lint
+        entry: uv run --frozen snakemake --lint
+        language: system
+        pass_filenames: false
+        files: ^(workflow|config)/
+        stages: [manual]
+{%- endif %}
 {%- if has_notebooks %}
 
   - repo: https://github.com/kynan/nbstripout

@@ -37,6 +37,13 @@
 *.memo
 *.memo.dir/
 {%- endif %}
+{%- if has_snakemake %}
+
+# github/gitignore has no Snakemake template. The workflow catalog's own
+# snakemake-workflow-template publishes this block, vendored unedited under
+# snakemake-workflow-template/ in the template repository.
+{% filter trim %}{% include "snakemake-workflow-template/.gitignore" %}{% endfilter %}
+{%- endif %}
 {%- if gitignore_own %}
 
 # This repository's own, the gitignore_own answer in .copier-answers.yml.

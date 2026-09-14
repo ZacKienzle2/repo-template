@@ -112,6 +112,15 @@ mypy_overrides:
   default: {}
   when: "{{ has_python }}"
 
+has_snakemake:
+  type: bool
+  help: >-
+    Does the repository hold a Snakemake workflow under workflow/? snakefmt formats the Snakefile and rule modules as a
+    hook, snakemake --lint checks the workflow through uv.lock as the Snakemake best practices ask, and .gitignore takes
+    the snakemake-workflow-template block for the results, logs and metadata a run writes.
+  default: false
+  when: "{{ has_python }}"
+
 has_notebooks:
   type: bool
   help: Does the repository hold Jupyter notebooks?
@@ -173,7 +182,7 @@ indent_width:
 
 code_width:
   type: int
-  help: Where clang-format, cmake-format and ruff wrap code.
+  help: Where clang-format, cmake-format, ruff and snakefmt wrap code.
   default: 100
   when: false
 
