@@ -368,7 +368,8 @@ repos:
     hooks:
       - id: cog
         name: cog
-        entry: uv run --frozen --group docs cog --check --diff --check-fail-msg="run uv run --group docs cog -r on the file"
+        entry:
+          uv run --frozen --group docs cog --check --diff --check-fail-msg="run uv run --group docs cog -r on the file"
         language: system
         files: '\.md$'
 {%- endif %}
