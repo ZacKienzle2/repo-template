@@ -193,16 +193,33 @@ repos:
     hooks:
       - id: uv-lock
 
-  # At the manual stage until a tree type-checks: measured on the first
-  # repository to take these hooks, mypy reports 28 errors through this mirror
-  # and 101 in the project's own environment, and a hook that fails every
-  # commit touching Python until they are fixed is a gate with nothing behind
-  # it yet. `pre-commit run mypy --hook-stage manual --all-files` runs it on
-  # demand; the typing pass that clears it moves it back to the commit.
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.1
+  # mirrors-mypy builds an environment holding mypy alone, where a decorator
+  # from pytest, hypothesis or nox resolves to Any. strict mode's
+  # disallow_untyped_decorators then reports one error per decorated function,
+  # 19 of them in the first repository to run this and none a type error in the
+  # code. The same tree checked inside the environment uv syncs reports
+  # `Success: no issues found in 11 source files`.
+  #
+  # `uv run --with mypy` syncs the project and adds the checker to it, which
+  # works in a repository whose dependency group names mypy and in one that
+  # declares no group at all, as the pyproject.toml rendered beside this file
+  # does not. A rev with additional_dependencies would be a second copy of the
+  # dependencies uv.lock already pins, and it would drift from them.
+  #
+  # Still at the manual stage, since a hook that fails every commit touching
+  # Python is a gate with nothing behind it until the tree is clean.
+  # `pre-commit run mypy --hook-stage manual --all-files` runs it on demand,
+  # and a repository that reports no errors deletes the stages line.
+  - repo: local
     hooks:
       - id: mypy
+        name: mypy
+        entry: uv run --with mypy mypy
+        args: ["."]
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+        require_serial: true
         stages: [manual]
 
   # pyright reports no errors in its standard mode on the first repository to
