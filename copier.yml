@@ -131,6 +131,14 @@ has_node:
   help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and the labeler marks it.
   default: false
 
+has_chezmoi:
+  type: bool
+  help: >-
+    Is the repository a chezmoi source directory? Its templates are named by attribute rather than by extension, so the
+    formatters and parsers are held off the .tmpl suffix, the modify_ prefix, .chezmoitemplates and the two .chezmoi
+    control files, each a Go template whatever its extension says.
+  default: false
+
 gitignore_own:
   type: yaml
   help: >-

@@ -10,7 +10,26 @@
 #
 # What the guide does not cover is prose, which the vale block at the end adds.
 
+{%- if has_chezmoi %}
+# A chezmoi source directory names its templates by attribute rather than by
+# extension, so a Go template is routinely called .json, .toml or .yaml: the
+# .tmpl suffix, the modify_ prefix, everything under .chezmoitemplates, and
+# the two .chezmoi control files that are rendered themselves. chezmoi's
+# reference lists these under source state attributes. A formatter handed one
+# rewrites the delimiters into nonsense and a parser rejects it outright,
+# which is what prettier, taplo and the check-* hooks would each do here.
+exclude: |
+  (?x)^(
+    \.copier-answers\.yml
+    |.*\.tmpl
+    |\.chezmoiexternal\.toml
+    |\.chezmoiignore
+    |\.chezmoitemplates/.*
+    |(.*/)?modify_[^/]*
+  )$
+{%- else %}
 exclude: ^\.copier-answers\.yml$
+{%- endif %}
 
 # pre-commit install puts in only the pre-commit stage unless told otherwise,
 # and the hooks below that run at commit-msg are silent until it is. Listing
