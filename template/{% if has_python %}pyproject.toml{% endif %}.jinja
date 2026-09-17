@@ -62,12 +62,14 @@ dev = [
   # comparing two implementations, with the pytest-benchmark fixture reserved
   # for a number that has to be rechecked in CI.
   "pyperf>=2.10",
-  # big_O times a function across input sizes and fits the result against eight
-  # complexity classes, which turns a claimed order into a measured one. Its
-  # inputs come from big_o.datagen, so the generator is the package's rather
-  # than written per problem, which is the half of benchmarking no other tool
-  # here automates.
-  "big-O>=0.11",
+  # big_O is deliberately absent. It fits measured time against complexity
+  # classes, which reports the constant factors rather than the order: over the
+  # two luck balance implementations it called the heap one Linearithmic and
+  # the Timsort one Linear, the reverse of both. Widening the range to separate
+  # them raised IndexError from inside the package. verification.md records it
+  # with those limits, and `uv run --with big-O` reaches it when the order is
+  # genuinely the question. Timing at the largest input the constraints allow
+  # answers whether the code is fast enough, which is the question asked.
   # deptry reads the declared dependencies and the imports and reports the ones
   # declared and never imported, imported and never declared, and reached only
   # through another package. Its own pre-commit hook is language: system, which
