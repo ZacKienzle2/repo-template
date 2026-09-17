@@ -76,6 +76,13 @@ dev = [
   # needs the binary already on PATH, so it runs from this environment in the
   # Python workflow the way pyright does.
   "deptry>=0.25",
+  # noxfile.py rewrites mutation.toml's module-path and test-command into a copy
+  # under the session's temporary directory, so the module to mutate is named on
+  # the command line rather than in the file. tomllib reads it and this writes
+  # it. The PEP 723 block declares it as well, which keeps ./noxfile.py runnable
+  # on a machine holding uv alone, and naming it here is what pyright and mypy
+  # resolve it through.
+  "tomli-w>=1.2",
 ]
 
 # The selection is the Scientific Python Development Guide's, which is what

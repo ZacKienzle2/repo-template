@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 
 # /// script
-# dependencies = ["nox>=2025.10.16"]
+# dependencies = ["nox>=2025.10.16", "tomli-w>=1.2"]
 # ///
 
 """Task runner sessions, so running the tooling is not a remembered ritual.
@@ -22,7 +22,12 @@ when one is renamed.
 
 from __future__ import annotations
 
+import json
+import tomllib
+from pathlib import Path
+
 import nox
+import tomli_w
 
 nox.needs_version = ">=2025.10.16"
 nox.options.default_venv_backend = "uv|virtualenv"
@@ -100,18 +105,37 @@ def bench(session: nox.Session) -> None:
 
     pytest-benchmark reports median, operations per second, standard deviation
     and rounds, which is what a choice between implementations rests on. A
-    difference smaller than the spread is not a difference.
+    difference smaller than the spread is not a difference. A comparison made
+    once runs through pyperf instead, which verification.md prescribes and
+    which reads no file.
+
+    --benchmark-only skips every test that takes no benchmark fixture, and
+    pytest exits zero when the whole suite is skipped, so a repository without
+    a benchmark reported a passing session that measured nothing.
+    --benchmark-json is written only when a benchmark ran, and its absence is
+    reported here as a skip rather than as a pass.
+
+    The plugin warns `Not saving anything, no benchmarks have been run!` in
+    that case, and filterwarnings in pyproject.toml turns every warning into an
+    error, which would end the session before the report is read. -W ignores
+    that one class, so the outcome comes from the report.
 
     Args:
         session: The nox session running this.
     """
     _sync(session)
+    report = Path(session.create_tmp()) / "benchmarks.json"
     session.run(
         "pytest",
         "--benchmark-only",
         "--benchmark-columns=median,ops,stddev,rounds",
+        f"--benchmark-json={report}",
+        "-W",
+        "ignore::pytest_benchmark.logger.PytestBenchmarkWarning",
         *session.posargs,
     )
+    if not report.is_file() or not json.loads(report.read_text(encoding="utf-8"))["benchmarks"]:
+        session.skip("no test takes the benchmark fixture, so there is nothing to measure")
 
 
 @nox.session(default=False)
@@ -119,7 +143,18 @@ def mutants(session: nox.Session) -> None:
     """Mutate the code and report which mutants the tests fail to kill.
 
     A suite that passes says nothing about what it would catch; a surviving
-    mutant is a change no test noticed. The session file names the module.
+    mutant is a change no test noticed.
+
+    The module is a positional argument, `nox -s mutants -- <module>`, because
+    mutation.toml naming one module went stale as soon as the work moved on. In
+    the first repository to run this it still named a module whose body was one
+    call to a standard library function, holding no operator to mutate, and the
+    session reported `total jobs: 0` and passed. The module is found under src
+    by glob, so the package name is read from the tree rather than repeated
+    here, and its tests are tests/test_<module>.py by the same convention.
+    Everything else in mutation.toml, the timeout and the distributor, is read
+    from the file, and only these two keys are rewritten, into a copy under the
+    session's temporary directory.
 
     cr-filter-pragma runs between init and exec. It is cosmic-ray's own filter
     for the `# pragma: no mutate` comment, which is how a line records that
@@ -130,10 +165,24 @@ def mutants(session: nox.Session) -> None:
     Args:
         session: The nox session running this.
     """
+    if not session.posargs:
+        session.error("name the module, as `nox -s mutants -- <module>`")
+    module = session.posargs[0]
+    sources = sorted(Path("src").glob(f"*/{module}.py"))
+    tests = Path("tests", f"test_{module}.py")
+    if not sources or not tests.is_file():
+        session.error(f"expected src/*/{module}.py and {tests}")
+
+    config = tomllib.loads(Path(_MUTATION_CONFIG).read_text(encoding="utf-8"))
+    config["cosmic-ray"]["module-path"] = str(sources[0])
+    config["cosmic-ray"]["test-command"] = f"uv run pytest -q -x --timeout=5 {tests}"
+    rendered = Path(session.create_tmp()) / _MUTATION_CONFIG
+    rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
+
     session.install("cosmic-ray")
-    session.run("cosmic-ray", "init", _MUTATION_CONFIG, _MUTATION_SESSION)
+    session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
     session.run("cr-filter-pragma", _MUTATION_SESSION)
-    session.run("cosmic-ray", "exec", _MUTATION_CONFIG, _MUTATION_SESSION)
+    session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
     session.run("cr-report", _MUTATION_SESSION)
 
 
@@ -156,12 +205,19 @@ def problem(session: nox.Session) -> None:
     fail, then the timings against the previous implementation, then what the
     tests would have caught.
 
+    nox hands the same posargs to every session it runs, and tests and bench
+    pass theirs to pytest, where a module name is neither a path nor a node id
+    and pytest exits 4. Each notified session is given the posargs it can use
+    and nothing else.
+
     Args:
         session: The nox session running this.
     """
-    session.notify("tests")
-    session.notify("bench")
-    session.notify("mutants")
+    if not session.posargs:
+        session.error("name the module, as `nox -s problem -- <module>`")
+    session.notify("tests", posargs=[])
+    session.notify("bench", posargs=[])
+    session.notify("mutants", posargs=[session.posargs[0]])
 
 
 if __name__ == "__main__":
