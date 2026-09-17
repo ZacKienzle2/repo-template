@@ -19,7 +19,32 @@ requires-python = ">={{ python_version }}"
 # pyright's hook runs in an environment of its own, so the test dependencies
 # have to be ones uv syncs rather than ones passed to a one-off `uv run --with`.
 [dependency-groups]
-dev = ["pytest>=8", "hypothesis>=6", "pytest-benchmark>=5", "nox>=2025"]
+dev = [
+  "pytest>=8",
+  "hypothesis>=6",
+  "pytest-benchmark>=5",
+  "nox>=2025",
+  # cosmic-ray reruns the whole suite once per mutant, so a suite that can hang
+  # or that depends on its own order costs far more here than it does once.
+  # pytest-randomly reorders every run and reseeds the standard random module
+  # per test, which surfaces a test that only passes after another one.
+  # pytest-timeout ends a mutant that turned a loop bound into a wider one
+  # rather than letting the session stall on it. pytest-xdist spreads the runs
+  # across cores.
+  "pytest-randomly>=3",
+  "pytest-timeout>=2",
+  "pytest-xdist>=3",
+  # Coverage answers which lines the generated tests reach. A survivor from
+  # cosmic-ray on an uncovered line is a different problem from one on a
+  # covered line, and only the report separates them. Left out of addopts on
+  # purpose: coverage instrumentation distorts a timing measurement, and
+  # pytest-benchmark's own documentation says so.
+  "pytest-cov>=6",
+  # The benchmark that needs no test file. verification.md prescribes it for
+  # comparing two implementations, with the pytest-benchmark fixture reserved
+  # for a number that has to be rechecked in CI.
+  "pyperf>=2.10",
+]
 
 [tool.ruff]
 
