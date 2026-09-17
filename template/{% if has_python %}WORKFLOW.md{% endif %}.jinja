@@ -75,10 +75,11 @@ one core; its `http` distributor is what parallelises them.
 
 ## Committing
 
-A solution is finished when the checks pass, not when it is committed. Commit
-once at the end of a sitting rather than per problem. The commit-msg hook runs
-vale over the message, and every rejected draft re-runs the whole hook set, so
-write the message to a file, run `vale` over that file, then commit.
+Work does not commit. A solution is finished when the checks pass, and the file
+on disk is the deliverable. A commit runs the hook set over the whole tree and
+runs vale over the message, where a rejected draft re-runs every hook, measured
+at 10 to 15 seconds clean and 40 to 75 with rejections. Commit when you want
+to, not as part of solving a problem.
 
 ## What runs without being asked
 
