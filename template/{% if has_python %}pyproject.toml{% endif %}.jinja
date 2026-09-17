@@ -21,7 +21,10 @@ requires-python = ">={{ python_version }}"
 [dependency-groups]
 dev = [
   "pytest>=8",
-  "hypothesis>=6",
+  # The cli extra is what `hypothesis write` needs, and the generate session
+  # runs it from this environment. Passing it to `uv run --with` instead builds
+  # an overlay environment on every call, measured at 2.7 seconds each.
+  "hypothesis[cli]>=6",
   "pytest-benchmark>=5",
   "nox>=2025",
   # cosmic-ray reruns the whole suite once per mutant, so a suite that can hang

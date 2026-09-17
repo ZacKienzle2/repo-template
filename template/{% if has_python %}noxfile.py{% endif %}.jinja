@@ -72,6 +72,40 @@ def tests(session: nox.Session) -> None:
 
 
 @nox.session(default=False)
+def generate(session: nox.Session) -> None:
+    """Write the equivalence test for a pair of implementations.
+
+    `nox -s generate -- pkg.baselines.<old> pkg.<module>.<new>` runs the
+    ghostwriter and writes what it prints to tests/test_<module>.py, taking the
+    module from the second name. Redirecting the command by hand puts an edited
+    file one keystroke away, and an edited generated file is the drift this
+    repository keeps out of its tests.
+
+    Args:
+        session: The nox session running this.
+    """
+    if len(session.posargs) != 2:
+        session.error("name two functions, as `nox -s generate -- pkg.baselines.old pkg.mod.new`")
+    old, new = session.posargs
+    module = new.split(".")[-2]
+    _sync(session)
+    source = session.run(
+        "hypothesis",
+        "write",
+        "--style=pytest",
+        "--equivalent",
+        old,
+        new,
+        silent=True,
+    )
+    if not isinstance(source, str):
+        session.error("the ghostwriter printed nothing")
+    written = Path("tests", f"test_{module}.py")
+    written.write_text(source, encoding="utf-8")
+    session.log(f"wrote {written}")
+
+
+@nox.session(default=False)
 def fast(session: nox.Session) -> None:
     """Run the tests a change affects, rather than all of them.
 
