@@ -1,0 +1,56 @@
+# Working a problem
+
+The tooling does the checking, so none of it is a judgement call. Every command
+below is rendered from the template, so a repository describes the work in one
+place rather than in a paragraph each repository rewrites.
+
+| Step                                   | Command                                                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Write the obvious solution             | `src/{{ package_name }}/<module>.py`                                                                                           |
+| Keep it when you rewrite               | move it to `src/{{ package_name }}/baselines.py`                                                                               |
+| Generate the test                      | `uv run --with 'hypothesis[cli]' hypothesis write --style=pytest --equivalent {{ package_name }}.baselines.<old> {{ package_name }}.<module>.<new>` |
+| Narrow the generated strategy          | the annotations do not carry the problem's bounds                                                                              |
+| Run everything                         | `nox`                                                                                                                          |
+| Re-run only what a change affects      | `nox -s fast`                                                                                                                  |
+| Compare two implementations            | `uv run python -m pyperf timeit --fast -s 'from {{ package_name }}.<module> import <fn> as f' 'f(data)'`                        |
+| Track a timing in CI instead           | `nox -s bench`, once a test takes the benchmark fixture                                                                        |
+| Measure what the tests would catch     | `nox -s mutants -- <module>`                                                                                                   |
+| Run the whole check for one piece      | `nox -s problem -- <module>`                                                                                                   |
+| Check the repository against the guide | `nox -s review`                                                                                                                |
+| Profile one implementation             | `uv run --with scalene scalene run <script>`, then `scalene view --cli`                                                        |
+
+## The test is generated
+
+`hypothesis write` writes the test rather than anyone writing assertions by
+hand, and `--equivalent` compares a rewrite against the version it replaced.
+The generated strategy comes from the type annotations alone, so it carries
+none of a problem's bounds. Narrow the strategy, and leave the assertion as
+generated.
+
+## A passing suite is not a measured one
+
+`nox -s mutants -- <module>` mutates that module and reruns its tests against
+each mutant. A surviving mutant is a change no test noticed. The module is
+named on the command line because a module named in `mutation.toml` goes stale
+as soon as the work moves on, and a run against a module with nothing to mutate
+reports `total jobs: 0` and passes.
+
+## Timing
+
+`pyperf timeit` reports a mean with its standard deviation and runs from the
+command line, which is why a timing harness under `tests/` is refused by name.
+The `benchmark` fixture and `nox -s bench` are for a number rechecked in CI,
+which is what answering `track_benchmarks` true renders a workflow for.
+
+Measure at the input the constraints allow, and on the input that is hard for
+the implementation rather than the one that is convenient. Random data often
+lets the naive version finish early, which reverses the result: over one
+poisonous plants pair, random values put the simulation ahead at 1.87 ms
+against 4.50 ms, while the input forcing one death per day put it behind at
+74.8 ms against 484 us.
+
+## What runs without being asked
+
+The language servers report while an edit is still in flight, ruff and pyright
+for Python and Harper, Vale and LTeX+ for prose. `pre-commit` runs the rest at
+the commit, and `pre-commit install --install-hooks` puts it there.
