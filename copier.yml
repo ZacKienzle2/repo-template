@@ -27,6 +27,7 @@ _answers_file: .copier-answers.yml
 # has one keeps it untouched.
 _skip_if_exists:
   - pyproject.toml
+  - README.md
 
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint. Without the split, yamllint and the

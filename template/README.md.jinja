@@ -1,0 +1,15 @@
+{#- Rendered once and never updated, like pyproject.toml, because a repository's
+    README is its own. It exists in the template for two reasons: SUPPORT.md
+    links to it for an overview, which was a broken link in every fresh render,
+    and repo-review's PY002 asks for one. -#}
+# {{ github_repository.split('/')[1] }}
+
+Replace this file.
+
+## Checks
+
+```sh
+pre-commit install --install-hooks
+nox            # lint, tests, typing
+nox -s review  # this repository against the Scientific Python Development Guide
+```
