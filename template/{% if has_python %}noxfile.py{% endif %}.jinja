@@ -1,3 +1,9 @@
+#!/usr/bin/env -S uv run --script
+
+# /// script
+# dependencies = ["nox>=2025.10.16"]
+# ///
+
 """Task runner sessions, so running the tooling is not a remembered ritual.
 
 repo-review's PY007 asks for one of these, and without it every repository the
@@ -5,14 +11,21 @@ template renders fails that check. Each session names the tooling a change is
 checked with, so `nox` runs the default set and `nox -s mutants` runs one. uv is
 the backend, which reuses the environment uv.lock pins rather than resolving a
 second one.
+
+The shebang, the PEP 723 block, needs_version and the main block below are what
+NOX101 and NOX201 through NOX203 ask for, and together they let this run as
+./noxfile.py on a machine that has uv and nothing else. The default set is
+marked on each session rather than listed in nox.options.sessions, which is
+NOX103: a list there repeats every session name a second time and goes stale
+when one is renamed.
 """
 
 from __future__ import annotations
 
 import nox
 
-nox.options.default_venv_backend = "uv"
-nox.options.sessions = ["lint", "tests", "typing"]
+nox.needs_version = ">=2025.10.16"
+nox.options.default_venv_backend = "uv|virtualenv"
 
 _MUTATION_CONFIG = "mutation.toml"
 _MUTATION_SESSION = "session.sqlite"
@@ -65,7 +78,7 @@ def typing(session: nox.Session) -> None:
     session.run("pyright")
 
 
-@nox.session
+@nox.session(default=False)
 def bench(session: nox.Session) -> None:
     """Time an implementation against the one it replaced.
 
@@ -85,7 +98,7 @@ def bench(session: nox.Session) -> None:
     )
 
 
-@nox.session
+@nox.session(default=False)
 def mutants(session: nox.Session) -> None:
     """Mutate the code and report which mutants the tests fail to kill.
 
@@ -101,7 +114,7 @@ def mutants(session: nox.Session) -> None:
     session.run("cr-report", _MUTATION_SESSION)
 
 
-@nox.session
+@nox.session(default=False)
 def review(session: nox.Session) -> None:
     """Check the repository against the Scientific Python Development Guide.
 
@@ -112,7 +125,7 @@ def review(session: nox.Session) -> None:
     session.run("repo-review", ".", *session.posargs)
 
 
-@nox.session
+@nox.session(default=False)
 def problem(session: nox.Session) -> None:
     """Run the whole check for one piece of work, in the order it is read.
 
@@ -126,3 +139,7 @@ def problem(session: nox.Session) -> None:
     session.notify("tests")
     session.notify("bench")
     session.notify("mutants")
+
+
+if __name__ == "__main__":
+    nox.main()
