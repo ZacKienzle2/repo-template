@@ -57,6 +57,15 @@ github_repository:
     destination, which cannot name the directory, so the first render is told and every update reads the answer back.
   validator: "{% if not github_repository or '/' not in github_repository %}owner/name{% endif %}"
 
+package_name:
+  type: str
+  help: >-
+    The importable name, derived from the repository name rather than asked. copier renders a path one segment at a
+    time, so a segment cannot hold a slash and the expression that splits github_repository cannot appear in a
+    directory name. Naming it once here is also what stops pyproject.toml and the source directory computing it twice.
+  default: "{{ github_repository.split('/')[1] | lower | replace('-', '_') }}"
+  when: false
+
 has_cpp:
   type: bool
   help: >-

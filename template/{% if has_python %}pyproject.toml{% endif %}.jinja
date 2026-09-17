@@ -12,7 +12,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "{{ github_repository.split('/')[1] | lower | replace('-', '_') }}"
+name = "{{ package_name }}"
 version = "0.0.0"
 requires-python = ">={{ python_version }}"
 
