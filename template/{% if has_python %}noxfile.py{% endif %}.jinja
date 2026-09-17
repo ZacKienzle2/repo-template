@@ -73,6 +73,12 @@ def _workers(session: nox.Session, ports: list[int]) -> Iterator[None]:
     left a mutant in the source. SIGINT raises KeyboardInterrupt, the block
     exits, and the file is restored.
 
+    A worker can still exit holding a mutation, and the session that follows
+    reports the survivors it found against a file the last worker rewrote. One
+    such run reported a survivor that a rerun did not, so mutants restores the
+    file and then fails rather than printing a number measured against the
+    wrong source.
+
     Args:
         session: The nox session running this, whose environment holds the
             worker command.
@@ -332,9 +338,14 @@ def mutants(session: nox.Session) -> None:
             session.run("cr-filter-pragma", _MUTATION_SESSION)
             session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
     finally:
-        if source.read_bytes() != before:
+        mutated = source.read_bytes() != before
+        if mutated:
             source.write_bytes(before)
-            session.log(f"restored {source}, which a stopped worker had left mutated")
+    if mutated:
+        session.error(
+            f"a worker left {source} mutated, so every job that ran after it was tested "
+            "against the wrong source. The file is restored; run the session again."
+        )
     session.run("cr-report", _MUTATION_SESSION)
 
 
