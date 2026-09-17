@@ -50,9 +50,9 @@ def _worker_count() -> int:
     """Return how many mutation workers to run at once.
 
     Returns:
-        One worker per core the process may use, and at least one.
+        One worker per core the interpreter reports, and at least one.
     """
-    return max(1, os.process_cpu_count() or 1)
+    return max(1, os.cpu_count() or 1)
 
 
 @contextlib.contextmanager
