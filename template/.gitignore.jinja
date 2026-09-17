@@ -33,8 +33,10 @@ scalene-profile.json
 session.sqlite
 # pytest-testmon's dependency database, which its documentation names and
 # which it rewrites on every run. It records this machine's paths, so it is
-# local state rather than anything to share.
-.testmondata
+# local state rather than anything to share. SQLite in write-ahead mode keeps
+# .testmondata-wal and .testmondata-shm beside it, which a run leaves behind
+# and editorconfig-checker then reports.
+.testmondata*
 {%- endif %}
 {%- if has_cpp %}
 

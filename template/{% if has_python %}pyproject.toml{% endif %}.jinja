@@ -123,6 +123,7 @@ extend-select = [
   "FURB", # refurb
   "G",    # flake8-logging-format
   "I",    # isort, which the formatter does not do
+  "N",    # pep8-naming, which python.md defers to ruff, like D below
   "ICN",  # flake8-import-conventions
   "LOG",  # flake8-logging
   "PIE",  # flake8-pie
@@ -156,7 +157,17 @@ ignore = [
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20"]
+"tests/**" = [
+  # hypothesis write emits a module and functions without docstrings, and the
+  # file is committed as it arrives.
+  "D100",
+  "D103",
+  "T20",
+]
+# A judge takes the solution file as it is written, and TC003 asks for the
+# stdlib import behind a type-checking block, which is scaffolding in a file
+# that is pasted.
+"src/**" = ["TC003"]
 
 # The sp-repo-review hook runs the guide's checks on every commit, so a
 # deviation has to be recorded rather than remembered. repo-review documents
