@@ -22,22 +22,13 @@ when one is renamed.
 
 from __future__ import annotations
 
-import contextlib
 import json
 import os
-import signal
-import socket
-import subprocess
-import time
 import tomllib
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import nox
 import tomli_w
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
 nox.needs_version = ">=2025.10.16"
 nox.options.default_venv_backend = "uv|virtualenv"
@@ -54,76 +45,6 @@ def _worker_count() -> int:
         One worker per core the interpreter reports, and at least one.
     """
     return max(1, os.cpu_count() or 1)
-
-
-@contextlib.contextmanager
-def _workers(session: nox.Session, ports: list[int]) -> Iterator[None]:
-    """Run a cosmic-ray HTTP worker on each port for the duration of the block.
-
-    cosmic-ray's http distributor "sends work requests over HTTP to workers",
-    reading their addresses from `worker-urls`, and ships `cosmic-ray
-    http-worker` as the worker. Nothing starts them, so the session does, one
-    per core, and stops them on the way out. Its local distributor runs the
-    jobs sequentially, which left the run on one core.
-
-    Stopping them is SIGINT rather than SIGTERM. A worker applies each mutation
-    to the file on disk inside `use_mutation`, which cosmic-ray documents as
-    putting "the unmutated code back in place" after its with-block. SIGTERM
-    ends the process without unwinding that block, and a run stopped that way
-    left a mutant in the source. SIGINT raises KeyboardInterrupt, the block
-    exits, and the file is restored.
-
-    A worker can still exit holding a mutation, and the session that follows
-    reports the survivors it found against a file the last worker rewrote. One
-    such run reported a survivor that a rerun did not, so mutants restores the
-    file and then fails rather than printing a number measured against the
-    wrong source.
-
-    Args:
-        session: The nox session running this, whose environment holds the
-            worker command.
-        ports: The ports to listen on, one per worker.
-
-    Yields:
-        None: once every worker accepts a connection.
-    """
-    worker = Path(session.virtualenv.bin, "cosmic-ray")
-    running = [
-        subprocess.Popen(
-            [str(worker), "http-worker", "--port", str(port)]
-        )
-        for port in ports
-    ]
-    try:
-        for port in ports:
-            _wait_for(session, port)
-        yield
-    finally:
-        for process in running:
-            process.send_signal(signal.SIGINT)
-        for process in running:
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
-
-
-def _wait_for(session: nox.Session, port: int, timeout: float = 30.0) -> None:
-    """Block until a worker accepts a connection on the port.
-
-    Args:
-        session: The nox session running this.
-        port: The port the worker listens on.
-        timeout: Seconds to wait before giving up.
-    """
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        with socket.socket() as probe:
-            if probe.connect_ex(("localhost", port)) == 0:
-                return
-        time.sleep(0.05)
-    session.error(f"no mutation worker answered on port {port}")
 
 
 def _sync(session: nox.Session) -> None:
@@ -307,6 +228,17 @@ def mutants(session: nox.Session) -> None:
     except the operator regexes in cr-filter-operators, which name mutation
     kinds rather than lines.
 
+    cr-http-workers runs the session rather than `cosmic-ray exec`. The local
+    distributor runs the jobs one after another, which held a 29 job run at 56
+    percent of one core. The http distributor spreads them, and cosmic-ray's
+    concepts page states that "multiple workers can't share a single copy of
+    the code; their mutations would interfere with one another": starting
+    workers in this directory emptied the module under test while the run was
+    still going, and the report counted survivors that a rerun did not find.
+    cr-http-workers "clones the git repository for each 'worker-url'" and
+    starts a worker in each clone, so every worker mutates a copy of its own
+    and the working tree is untouched.
+
     Args:
         session: The nox session running this.
     """
@@ -330,22 +262,9 @@ def mutants(session: nox.Session) -> None:
     rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
 
     session.install("cosmic-ray")
-    source = sources[0]
-    before = source.read_bytes()
-    try:
-        with _workers(session, ports):
-            session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
-            session.run("cr-filter-pragma", _MUTATION_SESSION)
-            session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
-    finally:
-        mutated = source.read_bytes() != before
-        if mutated:
-            source.write_bytes(before)
-    if mutated:
-        session.error(
-            f"a worker left {source} mutated, so every job that ran after it was tested "
-            "against the wrong source. The file is restored; run the session again."
-        )
+    session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
+    session.run("cr-filter-pragma", _MUTATION_SESSION)
+    session.run("cr-http-workers", str(rendered), str(Path.cwd()))
     session.run("cr-report", _MUTATION_SESSION)
 
 
