@@ -166,6 +166,7 @@ convention = "google"
 [tool.repo-review.ignore]
 MY100 = "mypy.ini holds the configuration, and mypy reads it ahead of pyproject.toml"
 PC170 = "pygrep-hooks checks reStructuredText, which no repository here writes"
+PC140 = "Matches the mirrors-mypy, pyrefly and ty repository URLs alone. mypy runs as a local hook through uv, where the project's own packages resolve, and pyright gates beside it"
 
 [tool.pytest.ini_options]
 minversion = "8"
