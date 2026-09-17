@@ -42,11 +42,14 @@ dev = [
   # to spread.
   "pytest-randomly>=3",
   "pytest-timeout>=2",
-  # Coverage answers which lines the generated tests reach. A survivor from
+  # Coverage answers which lines the generated tests execute. A survivor from
   # cosmic-ray on an uncovered line is a different problem from one on a
-  # covered line, and only the report separates them. Left out of addopts on
-  # purpose: coverage instrumentation distorts a timing measurement, and
-  # pytest-benchmark's own documentation says so.
+  # covered line, and only the report separates them. Left out of addopts
+  # because the number is wanted when that question is asked rather than on
+  # every run. It was left out first for a reason that measurement did not
+  # support: the same benchmark ran at 543.2 us without --cov and 533.0 us
+  # with it, a difference well inside a standard deviation of 107 us, because
+  # coverage uses sys.monitoring on a modern interpreter.
   "pytest-cov>=6",
   # The benchmark that needs no test file. verification.md prescribes it for
   # comparing two implementations, with the pytest-benchmark fixture reserved
