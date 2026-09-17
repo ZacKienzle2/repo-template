@@ -23,7 +23,6 @@ when one is renamed.
 from __future__ import annotations
 
 import json
-import os
 import tomllib
 from pathlib import Path
 
@@ -35,16 +34,6 @@ nox.options.default_venv_backend = "uv|virtualenv"
 
 _MUTATION_CONFIG = "mutation.toml"
 _MUTATION_SESSION = "session.sqlite"
-_FIRST_WORKER_PORT = 9876
-
-
-def _worker_count() -> int:
-    """Return how many mutation workers to run at once.
-
-    Returns:
-        One worker per core the interpreter reports, and at least one.
-    """
-    return max(1, os.cpu_count() or 1)
 
 
 def _sync(session: nox.Session) -> None:
@@ -228,16 +217,16 @@ def mutants(session: nox.Session) -> None:
     except the operator regexes in cr-filter-operators, which name mutation
     kinds rather than lines.
 
-    cr-http-workers runs the session rather than `cosmic-ray exec`. The local
-    distributor runs the jobs one after another, which held a 29 job run at 56
-    percent of one core. The http distributor spreads them, and cosmic-ray's
-    concepts page states that "multiple workers can't share a single copy of
-    the code; their mutations would interfere with one another": starting
-    workers in this directory emptied the module under test while the run was
-    still going, and the report counted survivors that a rerun did not find.
-    cr-http-workers "clones the git repository for each 'worker-url'" and
-    starts a worker in each clone, so every worker mutates a copy of its own
-    and the working tree is untouched.
+    The distributor is the local one, which runs the jobs one after another.
+    The http distributor spreads them, and cosmic-ray's concepts page states
+    that "multiple workers can't share a single copy of the code; their
+    mutations would interfere with one another". Workers started in this
+    directory proved that, emptying the module under test mid-run and
+    reporting a survivor that a rerun did not find. Its own launcher,
+    cr-http-workers, "clones the git repository for each 'worker-url'", which
+    on this machine meant ten clones and ten environments to build before the
+    first mutant ran, against a sequential run of about a minute. The parallel
+    path is for a suite large enough to pay that back, across machines.
 
     Args:
         session: The nox session running this.
@@ -250,21 +239,16 @@ def mutants(session: nox.Session) -> None:
     if not sources or not tests.is_file():
         session.error(f"expected src/*/{module}.py and {tests}")
 
-    ports = [_FIRST_WORKER_PORT + offset for offset in range(_worker_count())]
     config = tomllib.loads(Path(_MUTATION_CONFIG).read_text(encoding="utf-8"))
     config["cosmic-ray"]["module-path"] = str(sources[0])
     config["cosmic-ray"]["test-command"] = f"uv run pytest -q -x --timeout=5 {tests}"
-    config["cosmic-ray"]["distributor"] = {
-        "name": "http",
-        "http": {"worker-urls": [f"http://localhost:{port}" for port in ports]},
-    }
     rendered = Path(session.create_tmp()) / _MUTATION_CONFIG
     rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
 
     session.install("cosmic-ray")
     session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
     session.run("cr-filter-pragma", _MUTATION_SESSION)
-    session.run("cr-http-workers", str(rendered), str(Path.cwd()))
+    session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
     session.run("cr-report", _MUTATION_SESSION)
 
 
