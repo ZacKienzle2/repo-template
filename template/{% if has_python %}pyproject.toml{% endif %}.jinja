@@ -62,6 +62,12 @@ dev = [
   # comparing two implementations, with the pytest-benchmark fixture reserved
   # for a number that has to be rechecked in CI.
   "pyperf>=2.10",
+  # big_O times a function across input sizes and fits the result against eight
+  # complexity classes, which turns a claimed order into a measured one. Its
+  # inputs come from big_o.datagen, so the generator is the package's rather
+  # than written per problem, which is the half of benchmarking no other tool
+  # here automates.
+  "big-O>=0.11",
   # deptry reads the declared dependencies and the imports and reports the ones
   # declared and never imported, imported and never declared, and reached only
   # through another package. Its own pre-commit hook is language: system, which
