@@ -1,0 +1,128 @@
+"""Task runner sessions, so running the tooling is not a remembered ritual.
+
+repo-review's PY007 asks for one of these, and without it every repository the
+template renders fails that check. Each session names the tooling a change is
+checked with, so `nox` runs the default set and `nox -s mutants` runs one. uv is
+the backend, which reuses the environment uv.lock pins rather than resolving a
+second one.
+"""
+
+from __future__ import annotations
+
+import nox
+
+nox.options.default_venv_backend = "uv"
+nox.options.sessions = ["lint", "tests", "typing"]
+
+_MUTATION_CONFIG = "mutation.toml"
+_MUTATION_SESSION = "session.sqlite"
+
+
+def _sync(session: nox.Session) -> None:
+    """Install the project and its dependency groups into the session.
+
+    Args:
+        session: The nox session to install into.
+    """
+    session.run_install(
+        "uv",
+        "sync",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+
+
+@nox.session
+def lint(session: nox.Session) -> None:
+    """Run every pre-commit hook over the whole tree.
+
+    Args:
+        session: The nox session running this.
+    """
+    session.install("pre-commit")
+    session.run("pre-commit", "run", "--all-files", *session.posargs)
+
+
+@nox.session
+def tests(session: nox.Session) -> None:
+    """Run the test suite, leaving the benchmarks to the bench session.
+
+    Args:
+        session: The nox session running this.
+    """
+    _sync(session)
+    session.run("pytest", "--benchmark-skip", *session.posargs)
+
+
+@nox.session
+def typing(session: nox.Session) -> None:
+    """Type-check the tree with the checker the pre-commit config runs.
+
+    Args:
+        session: The nox session running this.
+    """
+    _sync(session)
+    session.install("pyright")
+    session.run("pyright")
+
+
+@nox.session
+def bench(session: nox.Session) -> None:
+    """Time an implementation against the one it replaced.
+
+    pytest-benchmark reports median, operations per second, standard deviation
+    and rounds, which is what a choice between implementations rests on. A
+    difference smaller than the spread is not a difference.
+
+    Args:
+        session: The nox session running this.
+    """
+    _sync(session)
+    session.run(
+        "pytest",
+        "--benchmark-only",
+        "--benchmark-columns=median,ops,stddev,rounds",
+        *session.posargs,
+    )
+
+
+@nox.session
+def mutants(session: nox.Session) -> None:
+    """Mutate the code and report which mutants the tests fail to kill.
+
+    A suite that passes says nothing about what it would catch; a surviving
+    mutant is a change no test noticed. The session file names the module.
+
+    Args:
+        session: The nox session running this.
+    """
+    session.install("cosmic-ray")
+    session.run("cosmic-ray", "init", _MUTATION_CONFIG, _MUTATION_SESSION)
+    session.run("cosmic-ray", "exec", _MUTATION_CONFIG, _MUTATION_SESSION)
+    session.run("cr-report", _MUTATION_SESSION)
+
+
+@nox.session
+def review(session: nox.Session) -> None:
+    """Check the repository against the Scientific Python Development Guide.
+
+    Args:
+        session: The nox session running this.
+    """
+    session.install("sp-repo-review[cli]")
+    session.run("repo-review", ".", *session.posargs)
+
+
+@nox.session
+def problem(session: nox.Session) -> None:
+    """Run the whole check for one piece of work, in the order it is read.
+
+    The tests first, since a timing or mutation result means nothing while they
+    fail, then the timings against the previous implementation, then what the
+    tests would have caught.
+
+    Args:
+        session: The nox session running this.
+    """
+    session.notify("tests")
+    session.notify("bench")
+    session.notify("mutants")

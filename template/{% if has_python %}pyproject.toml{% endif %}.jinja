@@ -2,10 +2,24 @@
 # pyproject.toml; a repository's own is never touched by an update. ruff.toml
 # extends this file, so its [tool.ruff] is the rule selection, and the pytest
 # settings are the Scientific Python Development Guide's.
+# repo-review's PP002 asks for a build backend, and without one the code is
+# importable only through pytest's pythonpath and pyright's extraPaths, two
+# settings saying the same thing while the language server still reports every
+# import unresolved. With one, uv sync installs the package and each tool
+# resolves it the same way.
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "{{ github_repository.split('/')[1] | lower | replace('-', '_') }}"
 version = "0.0.0"
 requires-python = ">={{ python_version }}"
+
+# pyright's hook runs in an environment of its own, so the test dependencies
+# have to be ones uv syncs rather than ones passed to a one-off `uv run --with`.
+[dependency-groups]
+dev = ["pytest>=8", "hypothesis>=6", "pytest-benchmark>=5", "nox>=2025"]
 
 [tool.ruff]
 
@@ -15,7 +29,20 @@ addopts = ["-ra", "--strict-config", "--strict-markers"]
 xfail_strict = true
 filterwarnings = ["error"]
 log_cli_level = "INFO"
+# repo-review PP304: log_level is what puts logs on a failure, where
+# log_cli_level above governs live output alone.
+log_level = "INFO"
 testpaths = ["tests"]
+
+# The pydoclint hook passes --config=pyproject.toml, and pydoclint exits with
+# an error when the file has no section of its own, so a repository without
+# this block fails that hook on its first commit. The style matches the
+# convention ruff's pydocstyle rules are set to, and the signatures carry the
+# types, so the docstrings do not repeat them.
+[tool.pydoclint]
+style = "google"
+arg-type-hints-in-docstring = false
+check-return-types = false
 
 # pyright-python's pre-commit hook runs in an environment of its own that
 # cannot see the project's packages, and its README's fix is to name the
