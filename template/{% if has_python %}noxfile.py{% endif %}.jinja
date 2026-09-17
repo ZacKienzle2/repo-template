@@ -25,6 +25,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import signal
 import socket
 import subprocess
 import time
@@ -65,6 +66,13 @@ def _workers(session: nox.Session, ports: list[int]) -> Iterator[None]:
     per core, and stops them on the way out. Its local distributor runs the
     jobs sequentially, which left the run on one core.
 
+    Stopping them is SIGINT rather than SIGTERM. A worker applies each mutation
+    to the file on disk inside `use_mutation`, which cosmic-ray documents as
+    putting "the unmutated code back in place" after its with-block. SIGTERM
+    ends the process without unwinding that block, and a run stopped that way
+    left a mutant in the source. SIGINT raises KeyboardInterrupt, the block
+    exits, and the file is restored.
+
     Args:
         session: The nox session running this, whose environment holds the
             worker command.
@@ -83,9 +91,13 @@ def _workers(session: nox.Session, ports: list[int]) -> Iterator[None]:
         yield
     finally:
         for process in running:
-            process.terminate()
+            process.send_signal(signal.SIGINT)
         for process in running:
-            process.wait()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
 
 
 def _wait_for(session: nox.Session, port: int, timeout: float = 30.0) -> None:
@@ -309,10 +321,17 @@ def mutants(session: nox.Session) -> None:
     rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
 
     session.install("cosmic-ray")
-    with _workers(session, ports):
-        session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
-        session.run("cr-filter-pragma", _MUTATION_SESSION)
-        session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
+    source = sources[0]
+    before = source.read_bytes()
+    try:
+        with _workers(session, ports):
+            session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
+            session.run("cr-filter-pragma", _MUTATION_SESSION)
+            session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
+    finally:
+        if source.read_bytes() != before:
+            source.write_bytes(before)
+            session.log(f"restored {source}, which a stopped worker had left mutated")
     session.run("cr-report", _MUTATION_SESSION)
 
 
