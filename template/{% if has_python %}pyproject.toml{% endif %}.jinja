@@ -42,6 +42,13 @@ dev = [
   # to spread.
   "pytest-randomly>=3",
   "pytest-timeout>=2",
+  # pytest-testmon records which lines each test executed, using coverage.py,
+  # and on the next run selects the tests a change affects. The inner loop then
+  # costs the affected tests rather than the suite. It writes .testmondata and
+  # turns its own selection off under a debugger or a coverage run, and when
+  # the invocation already narrows the set with -k, -m or a node id, so it
+  # cannot quietly skip a test that was asked for by name.
+  "pytest-testmon>=2",
   # Coverage answers which lines the generated tests execute. A survivor from
   # cosmic-ray on an uncovered line is a different problem from one on a
   # covered line, and only the report separates them. Left out of addopts

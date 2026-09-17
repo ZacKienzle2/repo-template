@@ -66,6 +66,22 @@ def tests(session: nox.Session) -> None:
     session.run("pytest", "--benchmark-skip", *session.posargs)
 
 
+@nox.session(default=False)
+def fast(session: nox.Session) -> None:
+    """Run the tests a change affects, rather than all of them.
+
+    pytest-testmon reads the dependency database it wrote on the previous run
+    and selects the tests that executed a line which has since changed. The
+    first run collects and therefore runs everything. The benchmarks are left
+    out for the reason the tests session leaves them out.
+
+    Args:
+        session: The nox session running this.
+    """
+    _sync(session)
+    session.run("pytest", "--testmon", "--benchmark-skip", *session.posargs)
+
+
 @nox.session
 def typing(session: nox.Session) -> None:
     """Type-check the tree with the checker the pre-commit config runs.

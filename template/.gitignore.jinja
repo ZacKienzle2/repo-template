@@ -31,6 +31,10 @@
 scalene-profile.json
 .benchmarks/
 session.sqlite
+# pytest-testmon's dependency database, which its documentation names and
+# which it rewrites on every run. It records this machine's paths, so it is
+# local state rather than anything to share.
+.testmondata
 {%- endif %}
 {%- if has_cpp %}
 
