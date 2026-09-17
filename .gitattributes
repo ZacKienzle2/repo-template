@@ -1,0 +1,14 @@
+# The template repository's own, distinct from template/.gitattributes.jinja,
+# which is the one rendered into a repository.
+#
+# copier copies a file without a .jinja suffix byte for byte, so the line
+# endings in this working tree are the ones a rendered repository receives.
+# With core.autocrlf true, which is the Windows default, a checkout here turns
+# every plain .yml into CRLF and the rendered repository then fails its own
+# yamllint with "wrong new line character: expected \n" on twenty files. A
+# render on macOS passed, so the fault appeared on one platform only.
+#
+# eol=lf pins the working tree rather than the index alone, which is what
+# autocrlf would otherwise override. A file jinja renders is unaffected either
+# way, since jinja writes the output itself.
+* text=auto eol=lf
