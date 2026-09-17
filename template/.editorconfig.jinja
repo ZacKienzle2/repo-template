@@ -99,3 +99,13 @@ end_of_line = crlf
 
 [*.ps1]
 end_of_line = crlf
+
+# A lock file is written by its own resolver, nix, uv, cargo or npm, at
+# whatever width that tool uses, and an edit here is undone the next time the
+# lock is regenerated. The width is left to the file rather than asserted over
+# it, which is what editorconfig-checker reads before reporting one.
+[*.lock]
+indent_size = unset
+
+[package-lock.json]
+indent_size = unset
