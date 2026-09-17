@@ -130,6 +130,28 @@ repos:
         types_or: [c++, c, cuda, python]
 {%- endif %}
 
+{%- if has_python and not track_benchmarks %}
+
+  # A hand-written timing harness is the rule most often broken here, and it
+  # was broken twice by writing a plausible file rather than by arguing with
+  # the prose in verification.md. A sentence that asks is not a check that
+  # fails, so this is the check. pre-commit's fail language exists to forbid a
+  # file by name: the entry below is printed when the pattern matches.
+  #
+  # pyperf timeit measures without a file at all. The fixture this would hold
+  # is read a second time only by the workflow track_benchmarks renders, and
+  # this repository answered that false, so nothing would ever run the file.
+  - repo: local
+    hooks:
+      - id: no-benchmark-harness
+        name: benchmark harnesses are not written by hand
+        entry: >-
+          A pyperf timeit line answers this without a file. See the benchmark
+          section of verification.md. Answer track_benchmarks true if the
+          number has to be rechecked in CI.
+        language: fail
+        files: ^tests/test_benchmark_.*\.py$
+{%- endif %}
 {%- if has_python %}
 
   # The Scientific Python Development Guide, checked rather than remembered.
