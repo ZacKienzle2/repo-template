@@ -79,11 +79,14 @@ def _workers(session: nox.Session, ports: list[int]) -> Iterator[None]:
         ports: The ports to listen on, one per worker.
 
     Yields:
-        None, once every worker accepts a connection.
+        None: once every worker accepts a connection.
     """
     worker = Path(session.virtualenv.bin, "cosmic-ray")
     running = [
-        subprocess.Popen([str(worker), "http-worker", "--port", str(port)]) for port in ports
+        subprocess.Popen(
+            [str(worker), "http-worker", "--port", str(port)]
+        )
+        for port in ports
     ]
     try:
         for port in ports:
