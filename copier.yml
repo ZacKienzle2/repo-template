@@ -102,6 +102,18 @@ has_import_linter:
   default: false
   when: "{{ has_python }}"
 
+track_benchmarks:
+  type: bool
+  help: >-
+    Does the repository keep a benchmark whose result should be compared against the last run on main? The workflow runs
+    pytest with --benchmark-json and hands the report to benchmark-action/github-action-benchmark, which keeps the
+    history on the gh-pages branch and fails the run when a result worsens past the threshold. It reads GITHUB_TOKEN and
+    needs no account elsewhere. Leave this false unless a benchmark exists: pytest writes an empty report without one
+    and the action then has nothing to compare. verification.md reserves the pytest-benchmark fixture for this case and
+    sends every other measurement to pyperf, which needs no file.
+  default: false
+  when: "{{ has_python }}"
+
 mypy_overrides:
   type: yaml
   help: >-
