@@ -22,18 +22,87 @@ when one is renamed.
 
 from __future__ import annotations
 
+import contextlib
 import json
+import os
+import socket
+import subprocess
+import time
 import tomllib
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import nox
 import tomli_w
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 nox.needs_version = ">=2025.10.16"
 nox.options.default_venv_backend = "uv|virtualenv"
 
 _MUTATION_CONFIG = "mutation.toml"
 _MUTATION_SESSION = "session.sqlite"
+_FIRST_WORKER_PORT = 9876
+
+
+def _worker_count() -> int:
+    """Return how many mutation workers to run at once.
+
+    Returns:
+        One worker per core the process may use, and at least one.
+    """
+    return max(1, os.process_cpu_count() or 1)
+
+
+@contextlib.contextmanager
+def _workers(session: nox.Session, ports: list[int]) -> Iterator[None]:
+    """Run a cosmic-ray HTTP worker on each port for the duration of the block.
+
+    cosmic-ray's http distributor "sends work requests over HTTP to workers",
+    reading their addresses from `worker-urls`, and ships `cosmic-ray
+    http-worker` as the worker. Nothing starts them, so the session does, one
+    per core, and stops them on the way out. Its local distributor runs the
+    jobs sequentially, which left the run on one core.
+
+    Args:
+        session: The nox session running this, whose environment holds the
+            worker command.
+        ports: The ports to listen on, one per worker.
+
+    Yields:
+        None, once every worker accepts a connection.
+    """
+    worker = Path(session.virtualenv.bin, "cosmic-ray")
+    running = [
+        subprocess.Popen([str(worker), "http-worker", "--port", str(port)]) for port in ports
+    ]
+    try:
+        for port in ports:
+            _wait_for(session, port)
+        yield
+    finally:
+        for process in running:
+            process.terminate()
+        for process in running:
+            process.wait()
+
+
+def _wait_for(session: nox.Session, port: int, timeout: float = 30.0) -> None:
+    """Block until a worker accepts a connection on the port.
+
+    Args:
+        session: The nox session running this.
+        port: The port the worker listens on.
+        timeout: Seconds to wait before giving up.
+    """
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        with socket.socket() as probe:
+            if probe.connect_ex(("localhost", port)) == 0:
+                return
+        time.sleep(0.05)
+    session.error(f"no mutation worker answered on port {port}")
 
 
 def _sync(session: nox.Session) -> None:
@@ -51,13 +120,34 @@ def _sync(session: nox.Session) -> None:
 
 @nox.session
 def lint(session: nox.Session) -> None:
-    """Run every pre-commit hook over the whole tree.
+    """Run the pre-commit hooks over what has changed since HEAD.
+
+    The whole tree took thirteen seconds of a loop that otherwise costs three,
+    and most of it went to files no edit had touched. `git ls-files` lists the
+    modified and the untracked, which is what pre-commit's --files takes.
+    `nox -s lint -- --all-files` is the whole tree, which is what CI runs.
 
     Args:
         session: The nox session running this.
     """
     session.install("pre-commit")
-    session.run("pre-commit", "run", "--all-files", *session.posargs)
+    if session.posargs:
+        session.run("pre-commit", "run", *session.posargs)
+        return
+    listed = session.run(
+        "git",
+        "ls-files",
+        "--modified",
+        "--others",
+        "--exclude-standard",
+        external=True,
+        silent=True,
+    )
+    changed = listed.split() if isinstance(listed, str) else []
+    if not changed:
+        session.log("nothing has changed since HEAD")
+        return
+    session.run("pre-commit", "run", "--files", *changed)
 
 
 @nox.session
@@ -207,16 +297,22 @@ def mutants(session: nox.Session) -> None:
     if not sources or not tests.is_file():
         session.error(f"expected src/*/{module}.py and {tests}")
 
+    ports = [_FIRST_WORKER_PORT + offset for offset in range(_worker_count())]
     config = tomllib.loads(Path(_MUTATION_CONFIG).read_text(encoding="utf-8"))
     config["cosmic-ray"]["module-path"] = str(sources[0])
     config["cosmic-ray"]["test-command"] = f"uv run pytest -q -x --timeout=5 {tests}"
+    config["cosmic-ray"]["distributor"] = {
+        "name": "http",
+        "http": {"worker-urls": [f"http://localhost:{port}" for port in ports]},
+    }
     rendered = Path(session.create_tmp()) / _MUTATION_CONFIG
     rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
 
     session.install("cosmic-ray")
-    session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
-    session.run("cr-filter-pragma", _MUTATION_SESSION)
-    session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
+    with _workers(session, ports):
+        session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
+        session.run("cr-filter-pragma", _MUTATION_SESSION)
+        session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
     session.run("cr-report", _MUTATION_SESSION)
 
 
