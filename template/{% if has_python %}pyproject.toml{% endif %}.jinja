@@ -198,6 +198,10 @@ timeout = 300
 style = "google"
 arg-type-hints-in-docstring = false
 check-return-types = false
+# DOC404 compares the type in a Yields section against the annotation, which is
+# the same repetition check-return-types turns off one line above. The noxfile
+# yields None from an Iterator[None] and the section says so in prose.
+check-yield-types = false
 
 # pyright-python's pre-commit hook runs in an environment of its own that
 # cannot see the project's packages, and its README's fix is to name the
