@@ -121,11 +121,18 @@ def mutants(session: nox.Session) -> None:
     A suite that passes says nothing about what it would catch; a surviving
     mutant is a change no test noticed. The session file names the module.
 
+    cr-filter-pragma runs between init and exec. It is cosmic-ray's own filter
+    for the `# pragma: no mutate` comment, which is how a line records that
+    mutating it proves nothing. Without it that exclusion has nowhere to live
+    except the operator regexes in cr-filter-operators, which name mutation
+    kinds rather than lines.
+
     Args:
         session: The nox session running this.
     """
     session.install("cosmic-ray")
     session.run("cosmic-ray", "init", _MUTATION_CONFIG, _MUTATION_SESSION)
+    session.run("cr-filter-pragma", _MUTATION_SESSION)
     session.run("cosmic-ray", "exec", _MUTATION_CONFIG, _MUTATION_SESSION)
     session.run("cr-report", _MUTATION_SESSION)
 
