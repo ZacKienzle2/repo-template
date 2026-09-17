@@ -18,6 +18,19 @@
 {%- if has_python %}
 
 {% filter trim %}{% include "gitignore/Python.gitignore" %}{% endfilter %}
+
+# Upstream covers .hypothesis, .pytest_cache, .coverage and htmlcov. It names
+# none of the measurement tools, which write into the working directory and so
+# left untracked output after every profiling or mutation run. Each name below
+# comes from the tool rather than from a guess. `scalene --help` documents
+# `scalene run` as saving to scalene-profile.json. pytest-benchmark's usage
+# page gives file://./.benchmarks as the --benchmark-storage default, written
+# when a run is saved for a later comparison. cosmic-ray takes its session
+# database as an argument rather than defaulting to one, and session.sqlite is
+# the name verification.md uses.
+scalene-profile.json
+.benchmarks/
+session.sqlite
 {%- endif %}
 {%- if has_cpp %}
 
