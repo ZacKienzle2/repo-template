@@ -132,6 +132,18 @@ repos:
 
 {%- if has_python %}
 
+  # The Scientific Python Development Guide, checked rather than remembered.
+  # pyproject.toml's ruff selection is that guide's, and a selection copied into
+  # a file is a list that drifts. This hook names every rule the guide asks for
+  # that the repository has not selected, along with the rest of its checks, so
+  # the drift is reported instead of waiting to be noticed. --show=err, which
+  # the hook passes itself, prints the failures alone. It is published by
+  # scientific-python/cookie, the guide's own template.
+  - repo: https://github.com/scientific-python/cookie
+    rev: 2026.08.14
+    hooks:
+      - id: sp-repo-review
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:

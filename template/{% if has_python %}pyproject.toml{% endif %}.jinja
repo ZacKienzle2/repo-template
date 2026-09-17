@@ -63,7 +63,87 @@ dev = [
   "deptry>=0.25",
 ]
 
+# The selection is the Scientific Python Development Guide's, which is what
+# repo-review's RF101 reads. This section was empty, so a rendered repository
+# linted with ruff's own defaults, which are E4, E7, E9 and F alone: no
+# bugbear, no pyupgrade and no docstring check. The codes come from that guide
+# rather than from a list assembled here, and `ruff linter` prints what each
+# one covers.
+#
+# D and its convention are the exception, added because python.md requires
+# Google docstrings on every public function, method and class and gives this
+# exact pair as what enforces them. The guide does not select D.
+#
+# ISC is left out although the guide lists it. ruff's formatter documentation
+# names ISC001 as a rule that conflicts with the formatter, and a selection
+# holding it prints a warning on every run.
+#
+# A repository adds its own per-file-ignores here. The file is rendered once
+# and never updated, so an edit survives.
 [tool.ruff]
+show-fixes = true
+
+[tool.ruff.lint]
+extend-select = [
+  "ARG",  # flake8-unused-arguments
+  "B",    # flake8-bugbear
+  "BLE",  # flake8-blind-except
+  "C4",   # flake8-comprehensions
+  "D",    # pydocstyle, required by python.md
+  "DTZ",  # flake8-datetimez
+  "EM",   # flake8-errmsg
+  "EXE",  # flake8-executable
+  "FA",   # flake8-future-annotations
+  "FLY",  # flynt
+  "FURB", # refurb
+  "G",    # flake8-logging-format
+  "I",    # isort, which the formatter does not do
+  "ICN",  # flake8-import-conventions
+  "LOG",  # flake8-logging
+  "PIE",  # flake8-pie
+  "NPY",  # NumPy specific rules
+  "PD",   # pandas-vet
+  "PERF", # perflint
+  "PGH",  # pygrep-hooks
+  "PL",   # pylint
+  "PT",   # flake8-pytest-style
+  "PTH",  # flake8-use-pathlib
+  "PYI",  # flake8-pyi
+  "Q",    # flake8-quotes
+  "RET",  # flake8-return
+  "RSE",  # flake8-raise
+  "RUF",  # Ruff-specific
+  "SIM",  # flake8-simplify
+  "SLOT", # flake8-slots
+  "T10",  # flake8-debugger
+  "T20",  # flake8-print
+  "TC",   # flake8-type-checking
+  "TRY",  # tryceratops
+  "UP",   # pyupgrade
+  "YTT",  # flake8-2020
+]
+ignore = [
+  "PLR09",   # Too many <...>
+  "PLR2004", # Magic value used in comparison
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["T20"]
+
+# The sp-repo-review hook runs the guide's checks on every commit, so a
+# deviation has to be recorded rather than remembered. repo-review documents
+# the ignore list as a table whose values are reasons, and prints the reason in
+# the report, which a bare list of codes would not. Both entries below are
+# decisions rather than omissions.
+#
+# The PY00x checks for a README, a LICENSE, a docs folder and a tests folder
+# are deliberately not ignored. A repository without them should be told.
+[tool.repo-review.ignore]
+MY100 = "mypy.ini holds the configuration, and mypy reads it ahead of pyproject.toml"
+PC170 = "pygrep-hooks checks reStructuredText, which no repository here writes"
 
 [tool.pytest.ini_options]
 minversion = "8"
