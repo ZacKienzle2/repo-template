@@ -44,6 +44,12 @@ dev = [
   # comparing two implementations, with the pytest-benchmark fixture reserved
   # for a number that has to be rechecked in CI.
   "pyperf>=2.10",
+  # deptry reads the declared dependencies and the imports and reports the ones
+  # declared and never imported, imported and never declared, and reached only
+  # through another package. Its own pre-commit hook is language: system, which
+  # needs the binary already on PATH, so it runs from this environment in the
+  # Python workflow the way pyright does.
+  "deptry>=0.25",
 ]
 
 [tool.ruff]

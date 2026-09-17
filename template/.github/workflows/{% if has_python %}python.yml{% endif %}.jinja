@@ -64,5 +64,11 @@ jobs:
         with:
           extra_args: pyright --all-files
 
+      # deptry compares the declared dependencies against the imports. Its own
+      # hook is language: system and wants the binary on PATH, so it runs here
+      # from the synced environment rather than as a hook.
+      - name: Check the dependencies with deptry
+        run: uv run deptry .
+
       - name: Run the test suite
         run: uv run pytest
