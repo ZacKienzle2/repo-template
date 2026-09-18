@@ -33,7 +33,7 @@ dev = [
   # per test, which surfaces a test that only passes after another one.
   # pytest-timeout ends a mutant that turned a loop bound into a wider one
   # rather than letting the session stall on it, and needs the value set under
-  # [tool.pytest.ini_options] below to do anything at all.
+  # [tool.pytest] below to do anything at all.
   #
   # pytest-xdist is deliberately absent. It disables every benchmark the moment
   # it is active, reporting "Benchmarks are automatically disabled because
@@ -203,8 +203,10 @@ testpaths = ["tests"]
 # purpose: it ends a test that has genuinely hung without touching a slow but
 # working one. A mutation run passes a much tighter --timeout in its own
 # test-command, which overrides this, because there the point is to separate a
-# mutant that loops forever from one the tests actually catch.
-timeout = 300
+# mutant that loops forever from one the tests actually catch. A string because
+# the native table checks each value against the type the plugin declared, and
+# pytest-timeout declares this one as a string.
+timeout = "300"
 
 # The guide's coverage section, as its own template renders it. Without
 # run.source, coverage measures everything the run imports, tests and
