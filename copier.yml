@@ -197,7 +197,8 @@ has_cog:
   help: >-
     Do Markdown files carry Cog blocks that generate sections from the files they describe? cog --check then runs as a
     hook through the docs dependency group of pyproject.toml, so a section that no longer matches its source fails the
-    commit instead of going stale.
+    commit instead of going stale. With has_python, readme.py is rendered beside the README and its blocks call it: a
+    module list from the package's docstrings and a measurements section from the pyperf files under benchmarks/.
   default: false
 
 # Values every rendered file agrees on. A question with `when: false` is never

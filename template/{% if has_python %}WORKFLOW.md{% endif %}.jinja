@@ -14,6 +14,9 @@ place rather than in a paragraph each repository rewrites.
 | Re-run only what a change affects      | `nox -s fast`                                                                                                                  |
 | Time one implementation                | `uv run python -m pyperf timeit --fast --name '<input>' -o <fn>.json -s 'from {{ package_name }}.<module> import <fn> as f' 'f(data)'` |
 | Render the comparison table            | `uv run python -m pyperf compare_to --table --table-format md <old>.json <new>.json`                                           |
+{%- if has_cog %}
+| Rewrite the README from the tree       | `uv run --group docs cog -r README.md`, once the runs sit under `benchmarks/<function>.json`                                   |
+{%- endif %}
 | Track a timing in CI instead           | `nox -s bench`, once a test takes the benchmark fixture                                                                        |
 | Measure what the tests would catch     | `nox -s mutants -- <module>`                                                                                                   |
 | Run the whole check for one piece      | `nox -s problem -- <module>`                                                                                                   |

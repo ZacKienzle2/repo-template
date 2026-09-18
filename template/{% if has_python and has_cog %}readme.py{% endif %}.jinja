@@ -1,0 +1,86 @@
+"""Sections of README.md that Cog writes from the tree.
+
+Cog adds the directory of the file it is processing to sys.path, its running
+page says, so a block in README.md imports this module by name and a section is
+one line there: `[[[cog import readme; readme.modules(cog) ]]]`. Each function
+takes the cog object the block runs under and writes one section from what the
+tree holds now, and the cog hook fails a commit in which the written section no
+longer matches. A README typed from the same sources was the file that went
+stale first in every repository the template was diffed against.
+"""
+
+from __future__ import annotations
+
+import ast
+import json
+import subprocess
+import sys
+from pathlib import Path
+from typing import Protocol
+
+PACKAGE = "{{ package_name }}"
+SOURCES = Path("src", PACKAGE)
+BENCHMARKS = Path("benchmarks")
+BASELINES = "baselines"
+
+
+class Writer(Protocol):
+    """The part of cog's module object a section uses."""
+
+    def outl(self, line: str = "", /) -> None:
+        """Write one line of generated output.
+
+        Args:
+            line: The line, without its newline.
+        """
+
+
+def modules(cog: Writer) -> None:
+    """List every module under the package with the first line of its docstring.
+
+    The package's own __init__ and the baselines module are the two that
+    describe the repository rather than one piece of work, so both are left
+    out.
+
+    Args:
+        cog: The cog object of the block calling this.
+    """
+    for path in sorted(SOURCES.glob("*.py")):
+        if path.stem in {"__init__", BASELINES}:
+            continue
+        docstring = ast.get_docstring(ast.parse(path.read_text(encoding="utf-8"))) or ""
+        summary = docstring.splitlines()[0] if docstring else ""
+        cog.outl(f"- [{path.stem}]({path.as_posix()}): {summary}")
+
+
+def measurements(cog: Writer) -> None:
+    """Render every pyperf comparison under benchmarks/ as a table and its setups.
+
+    A pair is benchmarks/<function>.json beside one or more
+    benchmarks/<function>_<suffix>.json, the suffix naming the implementation
+    the function replaced, which is how baselines.py names them. pyperf's own
+    compare_to renders the table, ratio included, and the setup each row timed
+    is read back from the metadata pyperf stored, so nothing in the section is
+    typed.
+
+    Args:
+        cog: The cog object of the block calling this.
+    """
+    for new in sorted(BENCHMARKS.glob("*.json")):
+        olds = sorted(BENCHMARKS.glob(f"{new.stem}_*.json"))
+        if not olds:
+            continue
+        cog.outl(f"### {new.stem.replace('_', ' ')}")
+        cog.outl()
+        for old in olds:
+            table = subprocess.run(
+                [sys.executable, "-m", "pyperf", "compare_to", "--table", "--table-format", "md", old, new],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            cog.outl(table.stdout)
+        for bench in json.loads(new.read_text(encoding="utf-8"))["benchmarks"]:
+            meta = bench["metadata"]
+            cog.outl(f"- {meta['name']}: `{meta['timeit_setup'].strip(chr(39))}`")
+        cog.outl()
