@@ -15,28 +15,13 @@ nox -s review  # this repository against the Scientific Python Development Guide
 ```
 {%- if has_python and has_cog %}
 
-The two sections below are written by Cog through `readme.py`, the first from
-each module's docstring and the second from the pyperf files under
-`benchmarks/`. `uv run --group docs cog -r README.md` rewrites them, and the
-cog hook fails a commit in which either no longer matches its source.
-
 ## Modules
 
-<!-- prettier-ignore-start -->
 <!-- [[[cog import readme; readme.modules(cog) ]]] -->
 <!-- [[[end]]] -->
-<!-- prettier-ignore-end -->
 
 ## Measurements
 
-Each pair is timed with `pyperf timeit`, on random input and on the input that
-is hard for the implementation it replaced, at sizes the baseline can answer.
-`-o` and `--append` keep the runs under `benchmarks/<function>.json`, the JSON
-records the setup and statement pyperf ran, and `pyperf compare_to` renders the
-table. The setups listed under each table are read from those files.
-
-<!-- prettier-ignore-start -->
 <!-- [[[cog import readme; readme.measurements(cog) ]]] -->
 <!-- [[[end]]] -->
-<!-- prettier-ignore-end -->
 {%- endif %}

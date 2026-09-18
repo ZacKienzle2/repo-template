@@ -40,17 +40,21 @@ def modules(cog: Writer) -> None:
 
     The package's own __init__ and the baselines module are the two that
     describe the repository rather than one piece of work, so both are left
-    out.
+    out. The section is wrapped in prettier's range-ignore comments, which its
+    documentation gives for content another tool formats, so the two do not
+    take turns rewrapping a long line.
 
     Args:
         cog: The cog object of the block calling this.
     """
+    cog.outl("<!-- prettier-ignore-start -->")
     for path in sorted(SOURCES.glob("*.py")):
         if path.stem in {"__init__", BASELINES}:
             continue
         docstring = ast.get_docstring(ast.parse(path.read_text(encoding="utf-8"))) or ""
         summary = docstring.splitlines()[0] if docstring else ""
         cog.outl(f"- [{path.stem}]({path.as_posix()}): {summary}")
+    cog.outl("<!-- prettier-ignore-end -->")
 
 
 def measurements(cog: Writer) -> None:
@@ -61,11 +65,19 @@ def measurements(cog: Writer) -> None:
     the function replaced, which is how baselines.py names them. pyperf's own
     compare_to renders the table, ratio included, and the setup each row timed
     is read back from the metadata pyperf stored, so nothing in the section is
-    typed.
+    typed. The one sentence above the tables says where the method is written
+    down, so a README carries no paragraph of its own about it.
 
     Args:
         cog: The cog object of the block calling this.
     """
+    cog.outl("<!-- prettier-ignore-start -->")
+    cog.outl(
+        "Timed with `pyperf timeit` as [WORKFLOW.md](WORKFLOW.md) describes and rendered by "
+        "`pyperf compare_to` from the files under `benchmarks/`; the list under each table is the "
+        "setup pyperf recorded for each row."
+    )
+    cog.outl()
     for new in sorted(BENCHMARKS.glob("*.json")):
         olds = sorted(BENCHMARKS.glob(f"{new.stem}_*.json"))
         if not olds:
@@ -84,3 +96,4 @@ def measurements(cog: Writer) -> None:
             meta = bench["metadata"]
             cog.outl(f"- {meta['name']}: `{meta['timeit_setup'].strip(chr(39))}`")
         cog.outl()
+    cog.outl("<!-- prettier-ignore-end -->")
