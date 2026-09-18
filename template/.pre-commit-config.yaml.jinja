@@ -456,21 +456,6 @@ repos:
         language: system
         files: '\.md$'
 {%- endif %}
-{%- if has_python %}
-
-  # mdsh is a Markdown shell pre-processor: a line of the form `> command`
-  # runs the command and writes its output after the line between BEGIN and
-  # END markers, and running it again replaces that output. The README's
-  # timing table is one such line over pyperf compare_to, so the table is
-  # pyperf's output and nothing else, and a commit that follows a new timing
-  # run rewrites it here rather than leaving a stale copy. The hook is the
-  # one mdsh publishes; pre-commit builds it with the Rust toolchain it
-  # installs itself when cargo is absent, once per machine.
-  - repo: https://github.com/zimbatm/mdsh.git
-    rev: v0.9.2
-    hooks:
-      - id: mdsh
-{%- endif %}
 
   # shfmt reads .editorconfig for its indent and style when given no flags,
   # so the shell scripts follow the same file every other language does.
