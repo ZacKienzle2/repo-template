@@ -206,6 +206,13 @@ repos:
   # does not. A rev with additional_dependencies would be a second copy of the
   # dependencies uv.lock already pins, and it would drift from them.
   #
+  # The hook is handed the staged Python files rather than the tree. pre-commit
+  # stashes unstaged edits to tracked files while the hooks run and leaves
+  # untracked files in place, so a check over the tree read an untracked test
+  # against a stashed edit to the module it imports and failed every commit
+  # until both were staged together. Over the staged files it checks what the
+  # commit contains, and the CI job runs the hook with --all-files.
+  #
   # Still at the manual stage, since a hook that fails every commit touching
   # Python is a gate with nothing behind it until the tree is clean.
   # `pre-commit run mypy --hook-stage manual --all-files` runs it on demand,
@@ -215,10 +222,8 @@ repos:
       - id: mypy
         name: mypy
         entry: uv run --with mypy mypy
-        args: ["."]
         language: system
         types_or: [python, pyi]
-        pass_filenames: false
         require_serial: true
         stages: [manual]
 

@@ -8,11 +8,12 @@ place rather than in a paragraph each repository rewrites.
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Write the obvious solution             | `src/{{ package_name }}/<module>.py`                                                                                           |
 | Keep it when you rewrite               | move it to `src/{{ package_name }}/baselines.py`                                                                               |
-| Generate the test                      | `uv run --with 'hypothesis[cli]' hypothesis write --style=pytest --equivalent {{ package_name }}.baselines.<old> {{ package_name }}.<module>.<new>` |
+| Generate the test                      | `nox -s generate -- {{ package_name }}.baselines.<old> {{ package_name }}.<module>.<new>`                                       |
 | Narrow the generated strategy          | the annotations do not carry the problem's bounds                                                                              |
 | Run everything                         | `nox`                                                                                                                          |
 | Re-run only what a change affects      | `nox -s fast`                                                                                                                  |
-| Compare two implementations            | `uv run python -m pyperf timeit --fast -s 'from {{ package_name }}.<module> import <fn> as f' 'f(data)'`                        |
+| Time one implementation                | `uv run python -m pyperf timeit --fast --name '<input>' -o <fn>.json -s 'from {{ package_name }}.<module> import <fn> as f' 'f(data)'` |
+| Render the comparison table            | `uv run python -m pyperf compare_to --table --table-format md <old>.json <new>.json`                                           |
 | Track a timing in CI instead           | `nox -s bench`, once a test takes the benchmark fixture                                                                        |
 | Measure what the tests would catch     | `nox -s mutants -- <module>`                                                                                                   |
 | Run the whole check for one piece      | `nox -s problem -- <module>`                                                                                                   |
@@ -39,8 +40,11 @@ reports `total jobs: 0` and passes.
 
 `pyperf timeit` reports a mean with its standard deviation and runs from the
 command line, which is why a timing harness under `tests/` is refused by name.
-The `benchmark` fixture and `nox -s bench` are for a number rechecked in CI,
-which is what answering `track_benchmarks` true renders a workflow for.
+`-o` writes a run to JSON and `--append` adds the next input to the same file,
+and `compare_to --table --table-format md` renders the two files as the table
+a README records, ratio included, so no number is typed from the terminal. The
+`benchmark` fixture and `nox -s bench` are for a number rechecked in CI, which
+is what answering `track_benchmarks` true renders a workflow for.
 
 Measure at the input the constraints allow, and on the input that is hard for
 the implementation rather than the one that is convenient. Random data often
@@ -62,8 +66,9 @@ Measured on one repository, five problems, 46 tests.
 | `nox -s mutants -- <module>`   | 60 s      | once, when a solution's tests are new   |
 
 `nox -R` reuses the environments and skips reinstalling, which is where most of
-the difference sits. It reads stale metadata after a module is added or
-removed, and reports that as `ModuleNotFoundError`; a full `nox` clears it.
+the difference sits. `uv sync` installs the project editable, so a module added
+or removed is seen on the next run without a reinstall, and the full `nox` is
+for a changed dependency.
 
 Mutation measures whether the tests would catch a wrong edit, which a passing
 suite does not report. It earns its minute once per solution: on one problem it
@@ -76,10 +81,13 @@ one core; its `http` distributor is what parallelises them.
 ## Committing
 
 Work does not commit. A solution is finished when the checks pass, and the file
-on disk is the deliverable. A commit runs the hook set over the whole tree and
+on disk is the deliverable. A commit runs the hook set over the staged files and
 runs vale over the message, where a rejected draft re-runs every hook, measured
-at 10 to 15 seconds clean and 40 to 75 with rejections. Commit when you want
-to, not as part of solving a problem.
+at 10 to 15 seconds clean and 40 to 75 with rejections. The message is checked
+on its own first: write the draft to `.git/COMMIT_EDITMSG` and run
+`pre-commit run --hook-stage commit-msg --commit-msg-filename .git/COMMIT_EDITMSG`,
+which is the same hook over the same styles in half a second. Commit when you
+want to, not as part of solving a problem.
 
 ## What runs without being asked
 

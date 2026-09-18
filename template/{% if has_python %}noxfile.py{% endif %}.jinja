@@ -102,6 +102,13 @@ def generate(session: nox.Session) -> None:
     file one keystroke away, and an edited generated file is the drift this
     repository keeps out of its tests.
 
+    The ghostwriter prints its imports in its own order and its calls at its
+    own width, so the first lint over the file always rewrote it and reported
+    the rewrite as a failure. The two ruff hooks run over the written file
+    here, through pre-commit so the version is the one the hook config pins.
+    pre-commit exits 1 when a hook changes a file, which is the outcome wanted
+    here rather than an error.
+
     Args:
         session: The nox session running this.
     """
@@ -110,6 +117,7 @@ def generate(session: nox.Session) -> None:
     old, new = session.posargs
     module = new.split(".")[-2]
     _sync(session)
+    session.install("pre-commit")
     source = session.run(
         "hypothesis",
         "write",
@@ -123,6 +131,8 @@ def generate(session: nox.Session) -> None:
         session.error("the ghostwriter printed nothing")
     written = Path("tests", f"test_{module}.py")
     written.write_text(source, encoding="utf-8")
+    for hook in ("ruff-check", "ruff-format"):
+        session.run("pre-commit", "run", hook, "--files", str(written), success_codes=[0, 1])
     session.log(f"wrote {written}")
 
 
