@@ -13,15 +13,15 @@ pre-commit install --install-hooks
 nox            # lint, tests, typing
 nox -s review  # this repository against the Scientific Python Development Guide
 ```
-{%- if has_python and has_cog %}
-
-## Modules
-
-<!-- [[[cog import readme; readme.modules(cog) ]]] -->
-<!-- [[[end]]] -->
+{%- if has_python %}
 
 ## Measurements
 
-<!-- [[[cog import readme; readme.measurements(cog) ]]] -->
-<!-- [[[end]]] -->
+The table is `pyperf compare_to` over `benchmarks/baselines.json` and
+`benchmarks/solutions.json`, which [WORKFLOW.md](WORKFLOW.md) describes; the
+mdsh hook runs the line below at each commit and rewrites what follows it.
+
+<!-- prettier-ignore-start -->
+`> uv run python -m pyperf compare_to --table --table-format md benchmarks/baselines.json benchmarks/solutions.json`
+<!-- prettier-ignore-end -->
 {%- endif %}

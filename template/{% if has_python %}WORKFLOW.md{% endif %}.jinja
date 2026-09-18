@@ -12,11 +12,10 @@ place rather than in a paragraph each repository rewrites.
 | Narrow the generated strategy          | the annotations do not carry the problem's bounds                                                                              |
 | Run everything                         | `nox`                                                                                                                          |
 | Re-run only what a change affects      | `nox -s fast`                                                                                                                  |
-| Time one implementation                | `uv run python -m pyperf timeit --fast --name '<input>' -o <fn>.json -s 'from {{ package_name }}.<module> import <fn> as f' 'f(data)'` |
-| Render the comparison table            | `uv run python -m pyperf compare_to --table --table-format md <old>.json <new>.json`                                           |
-{%- if has_cog %}
-| Rewrite the README from the tree       | `uv run --group docs cog -r README.md`, once the runs sit under `benchmarks/<function>.json`                                   |
-{%- endif %}
+| Time the version replaced              | `uv run python -m pyperf timeit --fast --name '<module>: <input>' --append benchmarks/baselines.json -s '<setup>' '<call>'`     |
+| Time the rewrite                       | the same line with `--append benchmarks/solutions.json`; `-o` in place of `--append` starts a file                             |
+| Render the comparison table            | `uv run python -m pyperf compare_to --table --table-format md benchmarks/baselines.json benchmarks/solutions.json`             |
+| Rewrite the README's table             | `pre-commit run mdsh --files README.md`, which the commit does anyway                                                          |
 | Track a timing in CI instead           | `nox -s bench`, once a test takes the benchmark fixture                                                                        |
 | Measure what the tests would catch     | `nox -s mutants -- <module>`                                                                                                   |
 | Run the whole check for one piece      | `nox -s problem -- <module>`                                                                                                   |
@@ -43,11 +42,15 @@ reports `total jobs: 0` and passes.
 
 `pyperf timeit` reports a mean with its standard deviation and runs from the
 command line, which is why a timing harness under `tests/` is refused by name.
-`-o` writes a run to JSON and `--append` adds the next input to the same file,
-and `compare_to --table --table-format md` renders the two files as the table
-a README records, ratio included, so no number is typed from the terminal. The
-`benchmark` fixture and `nox -s bench` are for a number rechecked in CI, which
-is what answering `track_benchmarks` true renders a workflow for.
+Every run is appended to one of two files, `benchmarks/baselines.json` for the
+version a rewrite replaced and `benchmarks/solutions.json` for the rewrite,
+under a name of the form `<module>: <input>`. pyperf matches the rows of the two
+files by name, so one `compare_to --table --table-format md` call renders every
+pair in the repository as a single table, ratio included, and the JSON keeps
+the setup each row timed, which `pyperf show --metadata` prints back. No
+number is typed from the terminal. The `benchmark` fixture and `nox -s bench`
+are for a number rechecked in CI, which is what answering `track_benchmarks`
+true renders a workflow for.
 
 Measure at the input the constraints allow, and on the input that is hard for
 the implementation rather than the one that is convenient. Random data often

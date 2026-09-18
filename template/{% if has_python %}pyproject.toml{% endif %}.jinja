@@ -88,10 +88,8 @@ dev = [
   "tomli-w>=1.2",
 ]
 {%- if has_cog %}
-# The cog hook runs `uv run --group docs cog`, so the generator lives in the
-# group that hook names. readme.py beside this file is what the README's blocks
-# import; it needs the standard library and, for the measurements section, the
-# pyperf the dev group above already carries.
+# The cog hook runs `uv run --group docs cog`, so cog lives in the group that
+# hook names.
 docs = ["cogapp>=3"]
 {%- endif %}
 
