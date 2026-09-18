@@ -18,6 +18,12 @@ NOX101 and NOX201 through NOX203 ask for, and together they let this run as
 marked on each session rather than listed in nox.options.sessions, which is
 NOX103: a list there repeats every session name a second time and goes stale
 when one is renamed.
+
+reuse_venv is "yes", which nox's usage page documents as the preferred spelling
+of -r: an environment that exists is kept rather than rebuilt, and the install
+step still runs, where `uv sync` against an unchanged lock file returns in
+well under a second. Rebuilding on every run cost 25 seconds against 12 and
+made `-R` a flag to remember; -N rebuilds when one is wanted.
 """
 
 from __future__ import annotations
@@ -31,6 +37,7 @@ import tomli_w
 
 nox.needs_version = ">=2025.10.16"
 nox.options.default_venv_backend = "uv|virtualenv"
+nox.options.reuse_venv = "yes"
 
 _MUTATION_CONFIG = "mutation.toml"
 _MUTATION_SESSION = "session.sqlite"

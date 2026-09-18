@@ -61,14 +61,15 @@ Measured on one repository, five problems, 46 tests.
 | ------------------------------ | --------- | --------------------------------------- |
 | `nox -s fast`                  | 3 s       | after every edit                        |
 | `uv run pytest -q`             | 2 s       | when the whole suite is wanted          |
-| `nox -R`                       | 12 s      | before leaving a problem                |
-| `nox`                          | 25 s      | after a dependency or layout change     |
+| `nox`                          | 12 s      | before leaving a problem                |
+| `nox -N`                       | 25 s      | when an environment is suspected stale  |
 | `nox -s mutants -- <module>`   | 60 s      | once, when a solution's tests are new   |
 
-`nox -R` reuses the environments and skips reinstalling, which is where most of
-the difference sits. `uv sync` installs the project editable, so a module added
-or removed is seen on the next run without a reinstall, and the full `nox` is
-for a changed dependency.
+The noxfile sets `reuse_venv` to yes, so `nox` keeps each environment and
+`uv sync` brings it up to date, which against an unchanged lock file is well
+under a second; a changed dependency is synced on the same run. `uv sync`
+installs the project editable, so a module added or removed is seen on the next
+run without a reinstall. `-N` deletes and rebuilds the environments.
 
 Mutation measures whether the tests would catch a wrong edit, which a passing
 suite does not report. It earns its minute once per solution: on one problem it

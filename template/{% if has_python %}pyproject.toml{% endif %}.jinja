@@ -182,10 +182,16 @@ MY100 = "mypy.ini holds the configuration, and mypy reads it ahead of pyproject.
 PC170 = "pygrep-hooks checks reStructuredText, which no repository here writes"
 PC140 = "Matches the mirrors-mypy, pyrefly and ty repository URLs alone. mypy runs as a local hook through uv, where the project's own packages resolve, and pyright gates beside it"
 
-[tool.pytest.ini_options]
-minversion = "8"
-addopts = ["-ra", "--strict-config", "--strict-markers"]
-xfail_strict = true
+# The native [tool.pytest] table, which pytest 9 reads with TOML types, and
+# `strict`, which pytest 9 documents as the one switch for strict_config,
+# strict_markers, strict_parametrization_ids, strict_xfail and whatever
+# strictness a later release adds. Its reference recommends it for a pinned
+# pytest, which uv.lock is. The three settings it replaced were two addopts
+# flags and xfail_strict, a hand-kept subset of that list.
+[tool.pytest]
+minversion = "9"
+strict = true
+addopts = ["-ra"]
 filterwarnings = ["error"]
 log_cli_level = "INFO"
 # repo-review PP304: log_level is what puts logs on a failure, where
@@ -199,6 +205,14 @@ testpaths = ["tests"]
 # test-command, which overrides this, because there the point is to separate a
 # mutant that loops forever from one the tests actually catch.
 timeout = 300
+
+# The guide's coverage section, as its own template renders it. Without
+# run.source, coverage measures everything the run imports, tests and
+# dependencies included, so the number never answered which package lines the
+# tests reach. exclude_also drops the two lines that never execute by design.
+[tool.coverage]
+run.source = ["{{ package_name }}"]
+report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
 
 # The pydoclint hook passes --config=pyproject.toml, and pydoclint exits with
 # an error when the file has no section of its own, so a repository without

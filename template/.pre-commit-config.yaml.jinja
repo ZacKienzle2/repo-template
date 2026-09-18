@@ -59,6 +59,14 @@ repos:
       - id: check-json
       - id: destroyed-symlinks
       - id: forbid-submodules
+{%- if has_python %}
+      # The mutants session and testmon find a module's tests at
+      # tests/test_<module>.py, and pytest collects test_*.py alone, so a test
+      # file named any other way is silently never run. This is the hook that
+      # says so; --pytest-test-first is the test_ prefix.
+      - id: name-tests-test
+        args: ["--pytest-test-first"]
+{%- endif %}
       - id: mixed-line-ending
         args: ["--fix=lf"]
 {%- if has_latex %}
@@ -487,11 +495,20 @@ repos:
     hooks:
       - id: gitleaks
 
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.4.0
+  # commitlint at the commit, reading commitlint.config.mjs, the file the
+  # Commit Lint workflow reads. conventional-pre-commit stood here before and
+  # carried its own grammar: it passed an 89 column header and a body with no
+  # blank line after the subject, both of which that config rejects, so the
+  # rules were enforced on the pull request and not at the commit. The hook is
+  # commitlint's own CLI under pre-commit's node language, and the shared
+  # configuration the config extends is installed beside it, which is what the
+  # hook's README asks for.
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.26.0
     hooks:
-      - id: conventional-pre-commit
+      - id: commitlint
         stages: [commit-msg]
+        additional_dependencies: ["@commitlint/config-conventional"]
 
   # Prose, which the guide does not cover. The hook entry is the bare vale
   # command, so it installs nothing the configuration names; the first entry
