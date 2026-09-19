@@ -9,14 +9,14 @@
 # Assembled by copier from github.com/gitattributes/gitattributes; the source
 # files are in the template repository, not here. A rule of this repository's
 # own is the gitattributes_own answer in .copier-answers.yml, rendered at the end.
-{% include "gitattributes/Common.gitattributes" %}
+{% filter trim %}{% include "gitattributes/Common.gitattributes" %}{% endfilter %}
 {%- if has_cpp %}
 
-{% include "gitattributes/C++.gitattributes" %}
+{% filter trim %}{% include "gitattributes/C++.gitattributes" %}{% endfilter %}
 {%- endif %}
 {%- if has_python %}
 
-{% include "gitattributes/Python.gitattributes" %}
+{% filter trim %}{% include "gitattributes/Python.gitattributes" %}{% endfilter %}
 {%- endif %}
 {%- if gitattributes_own %}
 
