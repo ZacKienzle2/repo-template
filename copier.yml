@@ -177,6 +177,15 @@ gitattributes_own:
     nested .gitattributes cannot serve, since the root file is the template's.
   default: []
 
+precommit_exclude_own:
+  type: yaml
+  help: >-
+    Paths no hook should read or rewrite, as a YAML list of regular expressions anchored to the root
+    ("vendor/.*\.sty"), joined into the top-level exclude of .pre-commit-config.yaml. Third-party sources kept verbatim
+    are the case: a formatter rewrites them and a linter reports style their authors chose. The expression is read in
+    verbose mode, so a literal space or # is escaped.
+  default: []
+
 has_ast_grep:
   type: bool
   help: >-
