@@ -25,9 +25,17 @@ _answers_file: .copier-answers.yml
 # but ruff.toml extends it and mypy.ini stands in for its [tool.mypy], so a
 # repository rendered before `uv init` needs one to exist. A repository that
 # has one keeps it untouched.
+#
+# The package's __init__.py is the same case. The stub gives a new repository
+# something to import, and `copier copy --overwrite` into a repository that
+# already had a package replaced its module with that stub. copier renders
+# each entry through Jinja before matching it against the destination path,
+# in match_skip on copy and on update alike, so the entry names the directory
+# as rendered rather than as the template spells it.
 _skip_if_exists:
   - pyproject.toml
   - README.md
+  - "src/{{ package_name }}/__init__.py"
 
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint. Without the split, yamllint and the
