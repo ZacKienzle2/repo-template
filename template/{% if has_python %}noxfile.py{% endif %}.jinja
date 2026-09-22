@@ -266,6 +266,13 @@ def mutants(session: nox.Session) -> None:
     from the file, and only these two keys are rewritten, into a copy under the
     session's temporary directory.
 
+    Both paths are written in POSIX form. cosmic-ray splits the test command
+    with shlex in POSIX mode, which reads a backslash as an escape, so on
+    Windows the test path reached pytest with its separator removed, as
+    teststest_mod.py. pytest collected nothing and exited 4, and cosmic-ray
+    counted every mutant as killed, a perfect score for a suite that never
+    ran.
+
     cr-filter-pragma runs between init and exec. It is cosmic-ray's own filter
     for the `# pragma: no mutate` comment, which is how a line records that
     mutating it proves nothing. Without it that exclusion has nowhere to live
@@ -293,8 +300,8 @@ def mutants(session: nox.Session) -> None:
     tests = _find_one(session, "tests", f"test_{module}.py")
 
     config = tomllib.loads(Path(_MUTATION_CONFIG).read_text(encoding="utf-8"))
-    config["cosmic-ray"]["module-path"] = str(source)
-    config["cosmic-ray"]["test-command"] = f"uv run pytest -q -x --timeout=5 {tests}"
+    config["cosmic-ray"]["module-path"] = source.as_posix()
+    config["cosmic-ray"]["test-command"] = f"uv run pytest -q -x --timeout=5 {tests.as_posix()}"
     rendered = Path(session.create_tmp()) / _MUTATION_CONFIG
     rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
 
