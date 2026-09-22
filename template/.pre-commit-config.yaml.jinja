@@ -54,7 +54,11 @@ repos:
       - id: check-added-large-files
       - id: check-case-conflict
       - id: check-executables-have-shebangs
+      # With no stages of its own this also ran at commit-msg, where a linked
+      # worktree passes the message file by absolute path, and the colon after
+      # a Windows drive letter failed every commit made from one.
       - id: check-illegal-windows-names
+        stages: [pre-commit]
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
       - id: check-symlinks
