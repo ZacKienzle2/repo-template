@@ -124,6 +124,13 @@ def generate(session: nox.Session) -> None:
     more over the rewritten file, where nothing is left to fix, so the only
     way it exits 1 there is an error that remains, and that fails the session.
 
+    On Windows the ghostwriter prints CRLF, nox decodes the captured bytes
+    without translating line endings, and a text-mode write then turned each LF
+    into a second CRLF. ruff took the lone CR that led each line for the file's
+    line ending and rewrote every line with it, so the test file held no LF at
+    all, read as one line, and both hooks still passed. The text is normalised
+    to LF and written without translation, the ending .editorconfig asks for.
+
     Args:
         session: The nox session running this.
     """
@@ -145,7 +152,7 @@ def generate(session: nox.Session) -> None:
     if not isinstance(source, str):
         session.error("the ghostwriter printed nothing")
     written = Path("tests", f"test_{module}.py")
-    written.write_text(source, encoding="utf-8")
+    written.write_text(source.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
     for hook in ("ruff-check", "ruff-format"):
         session.run("pre-commit", "run", hook, "--files", str(written), success_codes=[0, 1])
     session.run("pre-commit", "run", "ruff-check", "--files", str(written))
