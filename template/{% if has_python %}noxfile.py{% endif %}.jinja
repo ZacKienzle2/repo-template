@@ -116,6 +116,14 @@ def generate(session: nox.Session) -> None:
     pre-commit exits 1 when a hook changes a file, which is the outcome wanted
     here rather than an error.
 
+    ruff-check exits 1 as well when errors it cannot fix are left, so accepting
+    1 for the rewrite accepted those too. Given the same function name twice,
+    as `demo.baselines.total demo.sums.total`, the ghostwriter assigns to
+    `result_total_demo.baselines`, ruff reported `Found 5 errors (1 fixed, 4
+    remaining)`, and the session still reported success. ruff-check runs once
+    more over the rewritten file, where nothing is left to fix, so the only
+    way it exits 1 there is an error that remains, and that fails the session.
+
     Args:
         session: The nox session running this.
     """
@@ -140,6 +148,7 @@ def generate(session: nox.Session) -> None:
     written.write_text(source, encoding="utf-8")
     for hook in ("ruff-check", "ruff-format"):
         session.run("pre-commit", "run", hook, "--files", str(written), success_codes=[0, 1])
+    session.run("pre-commit", "run", "ruff-check", "--files", str(written))
     session.log(f"wrote {written}")
 
 
