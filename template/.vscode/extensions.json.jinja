@@ -1,6 +1,8 @@
 [#- One extension per tool the hooks run, so the editor shows the same
     findings the commit will, plus the grammar checkers no hook runs. Built as
-    lists and serialised. -#]
+    lists and serialised. VS Code recommends the Python and Jupyter extensions
+    itself when a .py or .ipynb file opens, through extensionRecommendations
+    in its product.json, so neither is listed. -#]
 # % set recommended = [
   "editorconfig.editorconfig",
   "esbenp.prettier-vscode",
@@ -17,10 +19,7 @@
 ]
 # % set unwanted = []
 # % if has_python
-# % set _ = recommended.extend(["ms-python.python", "charliermarsh.ruff"])
-# % endif
-# % if has_notebooks
-# % set _ = recommended.extend(["ms-toolsai.jupyter"])
+# % set _ = recommended.extend(["charliermarsh.ruff"])
 # % endif
 # % if has_cpp
 # % set _ = recommended.extend([
