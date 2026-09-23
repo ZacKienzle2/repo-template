@@ -1,0 +1,60 @@
+# The files under gitignore/, gitattributes/ and snakemake-workflow-template/
+# are upstream's, unedited, and vendir.yml says which repository and paths
+# each comes from. Each was once fetched by hand and nothing moved it since.
+# `vendir sync` fetches every declared path again and records the commit it
+# took in vendir.lock.yml, and the pull request carries the difference, so a
+# copy cannot go stale without a review noticing.
+name: Vendored files
+
+on:
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vendor
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync the vendored files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install vendir
+        uses: carvel-dev/setup-action@efbf2625e8469080d87175c02690634d4b0ad476 # v2.2.0
+        with:
+          only: vendir
+          token: ${{ github.token }}
+
+      - name: Sync
+        run: vendir sync
+
+      - name: Open the pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.TEMPLATE_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
+          branch: build/vendored-files
+          delete-branch: true
+          commit-message: "build(template): sync the vendored upstream files"
+          title: "build(template): sync the vendored upstream files"
+          body: |
+            `vendir sync` against the upstream repositories vendir.yml names.
+            vendir.lock.yml records the commit each copy is now at.
