@@ -522,13 +522,14 @@ repos:
   # here. The generator reads both through ruamel.yaml, which keeps the
   # version comment a pinned action carries, so cogapp and that parser run in
   # pre-commit's own environment, and the trigger is the files the generator
-  # reads rather than the file it writes. The message names the command that
-  # regenerates it.
+  # reads rather than the file it writes. docs/tooling.md itself states the
+  # command that regenerates it.
   - repo: local
     hooks:
       - id: tooling-index
         name: docs/tooling.md matches the hooks and workflows
-        entry: cog --check --diff --check-fail-msg="run uvx --from cogapp --with ruamel.yaml cog -r docs/tooling.md" docs/tooling.md
+        entry: cog
+        args: ["-U", "--check", "--diff", "docs/tooling.md"]
         language: python
         additional_dependencies: [cogapp, ruamel.yaml]
         pass_filenames: false
@@ -547,6 +548,9 @@ repos:
           uv run --frozen --group docs cog --check --diff --check-fail-msg="run uv run --group docs cog -r on the file"
         language: system
         files: '\.md$'
+        # docs/tooling.md is the tooling-index hook's, whose environment has
+        # the parser its generator imports.
+        exclude: ^docs/tooling\.md$
   # % endif
   # ~
   # shfmt reads .editorconfig for its indent and style when given no flags,

@@ -78,7 +78,7 @@ _skip_if_exists:
 # files kept by hand, and the tooling-index hook refuses a commit that lets it
 # drift.
 _tasks:
-  - ["uvx", "--from", "cogapp", "--with", "ruamel.yaml", "cog", "-r", "docs/tooling.md"]
+  - ["uvx", "--from", "cogapp", "--with", "ruamel.yaml", "cog", "-rU", "docs/tooling.md"]
 
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint, and the root is itself a render of
