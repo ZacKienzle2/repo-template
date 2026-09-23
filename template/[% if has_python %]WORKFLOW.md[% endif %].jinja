@@ -5,21 +5,21 @@ below is rendered from the template, so a repository describes the work in one
 place rather than in a paragraph each repository rewrites. `<package>` stands
 for `(( package_name ))` throughout.
 
-| Step                                   | Command                                                                                                                        |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Write the obvious solution             | `src/<package>/<module>.py`                                                                                                    |
-| Keep it when you rewrite               | move it to `src/<package>/baselines.py`                                                                                        |
-| Generate the test                      | `nox -s generate -- <package>.baselines.<old> <package>.<module>.<new>`                                                        |
-| Narrow the generated strategy          | the annotations do not carry the problem's bounds                                                                              |
-| Run everything                         | `nox`                                                                                                                          |
-| Re-run only what a change affects      | `nox -s fast`                                                                                                                  |
-| Time one implementation                | `uv run python -m pyperf timeit --fast --name '<input>' -o <fn>.json -s '<setup>' '<call>'`, `--append` for the next input       |
-| Compare two implementations            | `uv run python -m pyperf compare_to --table --table-format md <old>.json <new>.json`                                           |
-| Track a timing in CI instead           | `nox -s bench`, once a test takes the benchmark fixture                                                                        |
-| Measure what the tests would catch     | `nox -s mutants -- <module>`                                                                                                   |
-| Run the whole check for one piece      | `nox -s problem -- <module>`                                                                                                   |
-| Check the repository against the guide | `nox -s review`                                                                                                                |
-| Profile one implementation             | `uv run --with scalene scalene run <script>`, then `scalene view --cli`                                                        |
+| Step                                   | Command                                                                                                                    |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Write the obvious solution             | `src/<package>/<module>.py`                                                                                                |
+| Keep it when you rewrite               | move it to `src/<package>/baselines.py`                                                                                    |
+| Generate the test                      | `nox -s generate -- <package>.baselines.<old> <package>.<module>.<new>`                                                    |
+| Narrow the generated strategy          | the annotations do not carry the problem's bounds                                                                          |
+| Run everything                         | `nox`                                                                                                                      |
+| Re-run only what a change affects      | `nox -s fast`                                                                                                              |
+| Time one implementation                | `uv run python -m pyperf timeit --fast --name '<input>' -o <fn>.json -s '<setup>' '<call>'`, `--append` for the next input |
+| Compare two implementations            | `uv run python -m pyperf compare_to --table --table-format md <old>.json <new>.json`                                       |
+| Track a timing in CI instead           | `nox -s bench`, once a test takes the benchmark fixture                                                                    |
+| Measure what the tests would catch     | `nox -s mutants -- <module>`                                                                                               |
+| Run the whole check for one piece      | `nox -s problem -- <module>`                                                                                               |
+| Check the repository against the guide | `nox -s review`                                                                                                            |
+| Profile one implementation             | `uv run --with scalene scalene run <script>`, then `scalene view --cli`                                                    |
 
 ## The test is generated
 
@@ -60,13 +60,13 @@ against 4.50 ms, while the input forcing one death per day put it behind at
 
 Measured on one repository, five problems, 46 tests.
 
-| Command                        | Time      | When                                    |
-| ------------------------------ | --------- | --------------------------------------- |
-| `nox -s fast`                  | 3 s       | after every edit                        |
-| `uv run pytest -q`             | 2 s       | when the whole suite is wanted          |
-| `nox`                          | 12 s      | before leaving a problem                |
-| `nox -N`                       | 25 s      | when an environment is suspected stale  |
-| `nox -s mutants -- <module>`   | 60 s      | once, when a solution's tests are new   |
+| Command                      | Time | When                                   |
+| ---------------------------- | ---- | -------------------------------------- |
+| `nox -s fast`                | 3 s  | after every edit                       |
+| `uv run pytest -q`           | 2 s  | when the whole suite is wanted         |
+| `nox`                        | 12 s | before leaving a problem               |
+| `nox -N`                     | 25 s | when an environment is suspected stale |
+| `nox -s mutants -- <module>` | 60 s | once, when a solution's tests are new  |
 
 The noxfile sets `reuse_venv` to yes, so `nox` keeps each environment and
 `uv sync` brings it up to date, which against an unchanged lock file is well

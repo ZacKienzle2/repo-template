@@ -67,11 +67,14 @@ repos:
       # The template's YAML and Markdown sources: the Jinja delimiters keep a
       # YAML source valid YAML, and the .jinja overrides in .prettierrc.yaml
       # name each parser, so a source is formatted as the file it renders.
+      # The source patterns here allow a suffix without a dot between the
+      # extension and .jinja, which is the closing tag of a file rendered
+      # only for some answers, written as a class so Jinja reads no tag.
       - id: prettier
         alias: prettier-sources
         name: prettier on the template sources
         types: [text]
-        files: ^template/.*\.(ya?ml|md)\.jinja$
+        files: ^template/.*\.(ya?ml|md)[^./]*\.jinja$
 
   # taplo formats TOML, which prettier does not read: pyproject, ruff, typos,
   # lychee and cliff. uv.lock is uv's own output; taplo's defaults leave lock
@@ -112,7 +115,7 @@ repos:
         # back to JSON; the option names YAML for a .jinja path.
         args: ["--default-filetype", "yaml"]
         types: [text]
-        files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
+        files: ^template/\.github/workflows/[^/]+\.ya?ml([^./]*\.jinja)?$
 
   # Medium and above fail a commit. The one low finding zizmor raises on these
   # repositories is self-repository, which asks for GitHub's `$/` form of a
@@ -141,7 +144,7 @@ repos:
         alias: actionlint-sources
         name: actionlint on the workflow sources
         types: [text]
-        files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
+        files: ^template/\.github/workflows/[^/]+\.ya?ml([^./]*\.jinja)?$
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
@@ -153,7 +156,7 @@ repos:
         name: yamllint on the template sources
         args: ["--strict", "--config-file=.yamllint.yaml"]
         types: [text]
-        files: ^template/.*\.ya?ml\.jinja$
+        files: ^template/.*\.ya?ml[^./]*\.jinja$
 
   # The hook source itself, read by `pre-commit validate-config`, the check
   # pre-commit runs on a rendered configuration. pre-commit publishes a hook

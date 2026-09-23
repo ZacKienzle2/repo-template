@@ -25,12 +25,13 @@ overrides:
   # prettier-sources hook hands prettier a .jinja path, and these name the
   # parser for it, which prettier's overrides documentation gives as the way
   # to format a file whose extension names no language. A Markdown source
-  # keeps its wrapping for the reason above.
-  - files: ["*.yml.jinja", "*.yaml.jinja"]
+  # keeps its wrapping for the reason above. The second asterisk takes the
+  # closing tag in the name of a file rendered only for some answers.
+  - files: ["*.yml*.jinja", "*.yaml*.jinja"]
     options:
       parser: yaml
       printWidth: (( data_width ))
-  - files: ["*.md.jinja"]
+  - files: ["*.md*.jinja"]
     options:
       parser: markdown
       proseWrap: preserve
