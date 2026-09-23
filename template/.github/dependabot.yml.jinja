@@ -1,6 +1,6 @@
 # Rendered by copier. One schedule and one cooldown, defined once and written
-# into every entry as JSON, which YAML reads, so the entries cannot drift
-# apart. Which ecosystems appear follows the answers in .copier-answers.yml.
+# into every entry key by key, so the entries cannot drift apart. Which
+# ecosystems appear follows the answers in .copier-answers.yml.
 # Every update carries the dependencies label, which the release drafter
 # files under its own heading.
 # % set schedule = {"interval": "weekly", "day": "monday", "time": "06:00", "timezone": "Etc/UTC"}
@@ -9,8 +9,14 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule: (( schedule | tojson ))
-    cooldown: (( cooldown | tojson ))
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
     open-pull-requests-limit: 10
     commit-message:
       prefix: "ci"
@@ -24,8 +30,14 @@ updates:
           - "patch"
   - package-ecosystem: "pre-commit"
     directory: "/"
-    schedule: (( schedule | tojson ))
-    cooldown: (( cooldown | tojson ))
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -37,8 +49,14 @@ updates:
   # % if has_python
   - package-ecosystem: "uv"
     directory: "/"
-    schedule: (( schedule | tojson ))
-    cooldown: (( cooldown | tojson ))
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build"
@@ -54,8 +72,14 @@ updates:
   # % if has_node
   - package-ecosystem: "npm"
     directory: "/"
-    schedule: (( schedule | tojson ))
-    cooldown: (( cooldown | tojson ))
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build"
