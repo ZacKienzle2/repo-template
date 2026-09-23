@@ -45,6 +45,15 @@ exclude: |
 # both here is the documented way to make one `pre-commit install` enough.
 default_install_hook_types: [pre-commit, commit-msg]
 
+# A hook with no stages of its own runs at every stage installed above, which
+# pre-commit's documentation gives as the default, so each file hook also ran
+# at commit-msg with the message file as its argument. A linked worktree
+# passes that file by absolute path, outside the tree: the colon after the
+# Windows drive letter failed check-illegal-windows-names, and prettier
+# refused a path it could not match, on every commit made from one. The file
+# hooks run at pre-commit, and the message hooks name commit-msg themselves.
+default_stages: [pre-commit]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -52,11 +61,7 @@ repos:
       - id: check-added-large-files
       - id: check-case-conflict
       - id: check-executables-have-shebangs
-      # With no stages of its own this also ran at commit-msg, where a linked
-      # worktree passes the message file by absolute path, and the colon after
-      # a Windows drive letter failed every commit made from one.
       - id: check-illegal-windows-names
-        stages: [pre-commit]
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
       - id: check-symlinks
@@ -636,12 +641,15 @@ repos:
       # vale's own pre-commit recipe: sync runs whenever the hooks run, so the
       # styles .vale.ini names are present on a runner that checks only the
       # files a pull request changed and in a fresh clone, neither of which
-      # a sync keyed on .vale.ini changing ever reached.
+      # a sync keyed on .vale.ini changing ever reached. It names both stages,
+      # so the styles are present when the message is checked even for a
+      # commit that stages no file.
       - id: vale
         alias: vale-sync
         name: vale sync
         args: [--config=.vale.ini, sync]
         pass_filenames: false
+        stages: [pre-commit, commit-msg]
       # Vale parses MDX natively from v3.18.0, JSX children included from
       # v3.19.0, so MDX is prose here with no package to read it.
       - id: vale
