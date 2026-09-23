@@ -1,17 +1,17 @@
-{#- Editor settings that say what the hooks enforce, so a save agrees with
-    the commit. Built as a mapping and serialised, so a conditional block
+[#- Editor settings for what .editorconfig cannot say. The EditorConfig
+    extension, which extensions.json recommends, reads indent_style,
+    indent_size, end_of_line, insert_final_newline, trim_trailing_whitespace
+    and charset from .editorconfig, so none of those is repeated here. Its
+    README records that a workspace files.trimTrailingWhitespace of true
+    overrides the [*.md] trim_trailing_whitespace = false in .editorconfig,
+    which this file used to set and which stripped the two-space line breaks
+    Markdown uses. Built as a mapping and serialised, so a conditional block
     needs no comma bookkeeping. Machine paths, a clangd driver or a compile
-    commands directory, belong in .clangd, which clangd documents, not here. -#}
-{%- set settings = {
-  "files.eol": "\n",
-  "files.encoding": "utf8",
-  "files.insertFinalNewline": true,
-  "files.trimTrailingWhitespace": true,
+    commands directory, belong in .clangd, which clangd documents, not here. -#]
+# % set settings = {
   "files.trimFinalNewlines": true,
   "editor.formatOnSave": true,
   "editor.rulers": [commit_width, code_width, data_width],
-  "editor.tabSize": indent_width,
-  "editor.insertSpaces": true,
   "git.enableSmartCommit": false,
   "git.confirmSync": true,
   "git.useEditorAsCommitInput": true,
@@ -25,68 +25,48 @@
   "[markdown]": {
     "editor.wordWrap": "off",
     "editor.rulers": [prose_width],
-    "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[yaml]": {
-    "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
-    "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[toml]": {
-    "editor.tabSize": 2
   }
-} -%}
-{%- if has_python -%}
-{%- set _ = settings.update({
+}
+# % if has_python
+# % set _ = settings.update({
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit"
     }
   }
-}) -%}
-{%- endif -%}
-{%- if has_cpp -%}
-{%- set _ = settings.update({
+})
+# % endif
+# % if has_cpp
+# % set _ = settings.update({
   "[cpp]": {
-    "editor.tabSize": indent_width,
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "[c]": {
-    "editor.tabSize": indent_width,
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "[cmake]": {
-    "editor.tabSize": 2,
     "editor.defaultFormatter": "cheshirekow.cmake-format"
   },
   "cmake.configureOnOpen": false,
   "cmake.useCMakePresets": "always"
-}) -%}
-{%- endif -%}
-{%- if has_latex -%}
-{%- set _ = settings.update({
-  "[latex]": {
-    "editor.tabSize": 2
-  },
-  "[bibtex]": {
-    "editor.tabSize": 2
-  }
-}) -%}
-{%- endif -%}
-{%- set _ = settings.update({
+})
+# % endif
+# % set _ = settings.update({
   "yaml.schemas": {
     "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
     "https://json.schemastore.org/dependabot-2.0.json": ".github/dependabot.yml",
     "https://json.schemastore.org/github-issue-forms.json": ".github/ISSUE_TEMPLATE/*.yml"
   }
-}) -%}
-{{ settings | tojson(indent=2) }}
+})
+(( settings | tojson(indent=2) ))

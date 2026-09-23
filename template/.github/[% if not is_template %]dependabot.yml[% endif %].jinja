@@ -1,0 +1,96 @@
+# Rendered by copier. One schedule and one cooldown, defined once and written
+# into every entry key by key, so the entries cannot drift apart. Which
+# ecosystems appear follows the answers in .copier-answers.yml.
+# Every update carries the dependencies label, which the release drafter
+# files under its own heading. The template repository renders none: its root
+# is a render of its sources, which Dependabot cannot read, so its pins move
+# through its own pins workflow and a re-render.
+# % set schedule = {"interval": "weekly", "day": "monday", "time": "06:00", "timezone": "Etc/UTC"}
+# % set cooldown = {"default-days": 7}
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      actions-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      pre-commit-hooks:
+        patterns: ["*"]
+  # % if has_python
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      python-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  # % endif
+  # % if has_node
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      # % for key, value in schedule.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    cooldown:
+      # % for key, value in cooldown.items()
+      (( key )): (( value | tojson ))
+      # % endfor
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  # % endif

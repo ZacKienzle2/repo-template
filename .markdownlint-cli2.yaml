@@ -2,9 +2,9 @@
 # it reads the generated ignore file rather than repeating what that lists.
 gitignore: true
 
+# Every rule is on unless disabled: markdownlint enables all rules when the
+# configuration has no default key, so none is set.
 config:
-  default: true
-
   MD013: false
   MD033: false
   MD041: false

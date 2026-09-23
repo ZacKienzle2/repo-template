@@ -21,6 +21,37 @@
 
 _answers_file: .copier-answers.yml
 
+# Jinja delimiters that leave every YAML source a valid YAML file. A block tag
+# is a line statement, `# % if has_python`, which YAML, TOML, INI, gitignore
+# and Python each read as a comment, yamllint accepts for the space after the
+# hash, and Jinja removes with its line; a
+# variable is `(( name ))`, which YAML reads as a plain scalar since `(` is
+# not an indicator, and Windows accepts in a file name where `<` and `>` are
+# refused; and `${{ }}` in a workflow is no longer Jinja, so no raw block
+# wraps it. The sources are therefore what pinact, pre-commit autoupdate,
+# actionlint, zizmor, the schema checks and prettier read, in place of a
+# render mapped back by hand. `[% %]` and `[# #]` remain for a block inside a
+# line, in a file name or in Markdown. Jinja documents each option under
+# Environment, and the line statement under Line Statements. Copier's own
+# default is the one entry it changes from Jinja's, and a run block that
+# holds a `$((` arithmetic expansion would need a comment to escape it.
+#
+# A line statement ends at the whitespace after it, newlines included, so
+# every blank line that follows one is removed from the render. A line
+# comment ends before its newline, so a line that is the prefix alone
+# renders as an empty line: `# ~` on its own line is how a source writes
+# the blank line after `# % if` or `# % endif`.
+_envops:
+  keep_trailing_newline: true
+  block_start_string: "[%"
+  block_end_string: "%]"
+  variable_start_string: "(("
+  variable_end_string: "))"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  line_statement_prefix: "# %"
+  line_comment_prefix: "# ~"
+
 # Rendered once, never updated: pyproject.toml is a repository's own file,
 # but ruff.toml extends it and mypy.ini stands in for its [tool.mypy], so a
 # repository rendered before `uv init` needs one to exist. A repository that
@@ -35,11 +66,23 @@ _answers_file: .copier-answers.yml
 _skip_if_exists:
   - pyproject.toml
   - README.md
-  - "src/{{ package_name }}/__init__.py"
+  - "src/(( package_name ))/__init__.py"
+  # A tests directory is the repository's own once it holds a test; the stub
+  # gives a fresh repository the folder repo-review's PY005 asks for and the
+  # file pytest reads fixtures from, and an update never touches it.
+  - tests/conftest.py
+
+# docs/tooling.md is rendered with an empty Cog block and filled here, after
+# every copy and every update, from the hook configuration and the workflows
+# the same render wrote. The table is therefore never a second copy of those
+# files kept by hand, and the tooling-index hook refuses a commit that lets it
+# drift.
+_tasks:
+  - ["uvx", "--from", "cogapp", "--with", "ruamel.yaml", "cog", "-rU", "docs/tooling.md"]
 
 # The template's sources live here, so the repository root is an ordinary
-# project that its own hooks can lint. Without the split, yamllint and the
-# workflow schema check read the .jinja sources and reject the Jinja in them.
+# project that its own hooks can lint, and the root is itself a render of
+# them: .copier-answers.yml at the root answers is_template true.
 _subdirectory: template
 
 _message_after_copy: |
@@ -63,7 +106,7 @@ github_repository:
     The repository as owner/name on GitHub. Issue form contact links, SUPPORT.md, CONTRIBUTING.md, CODEOWNERS and the
     changelog's commit and compare links are built from it. No default: copier hands a template a pure path for the
     destination, which cannot name the directory, so the first render is told and every update reads the answer back.
-  validator: "{% if not github_repository or '/' not in github_repository %}owner/name{% endif %}"
+  validator: "[% if not github_repository or '/' not in github_repository %]owner/name[% endif %]"
 
 package_name:
   type: str
@@ -71,14 +114,31 @@ package_name:
     The importable name, derived from the repository name rather than asked. copier renders a path one segment at a
     time, so a segment cannot hold a slash and the expression that splits github_repository cannot appear in a directory
     name. Naming it once here is also what stops pyproject.toml and the source directory computing it twice.
-  default: "{{ github_repository.split('/')[1] | lower | replace('-', '_') }}"
+  default: "(( github_repository.split('/')[1] | lower | replace('-', '_') ))"
   when: false
+
+has_discussions:
+  type: bool
+  help: >-
+    Are GitHub Discussions enabled on the repository? SUPPORT.md and the issue forms' contact links send questions
+    there, and the link checker fails on the link when Discussions are off.
+  default: true
+
+is_template:
+  type: bool
+  help: >-
+    Is this repository the template itself? The sources under template/ are then linted as the files they render:
+    prettier formats each YAML and Markdown source, yamllint reads the YAML sources, actionlint, zizmor and the workflow
+    schema read the workflow sources, and pre-commit validates the hook source, each through the same hook it runs on
+    the rendered file. No Dependabot configuration renders, since Dependabot would edit the rendered root rather than
+    the sources. Every other repository answers false.
+  default: false
 
 has_cpp:
   type: bool
   help: >-
-    Does the repository hold C or C++ built with CMake? clang keeps its own configuration in .clang-format and
-    .clang-tidy, which are YAML by shape and clang's convention by content, so yamllint is told to leave them alone.
+    Does the repository hold C or C++ built with CMake? clang-format, cmake-format, cmake-lint and cppcheck then run as
+    hooks, and .clang-format and .cmake-format.json render with the shared widths.
   default: false
 
 cpp_source_dir:
@@ -87,7 +147,7 @@ cpp_source_dir:
     Which directory holds the CMake project and its CMakePresets.json? The sanitizer workflow runs cmake there and
     watches that directory, so a repository whose C++ sits in a subdirectory names it once here.
   default: "."
-  when: "{{ has_cpp }}"
+  when: "(( has_cpp ))"
 
 cpp_sanitizer_presets:
   type: yaml
@@ -98,7 +158,7 @@ cpp_sanitizer_presets:
     the one place they are written. The action installs the toolchain and reports its compilers as cc and cxx outputs,
     which the workflow hands CMake as CC and CXX. An empty mapping renders no workflow.
   default: {}
-  when: "{{ has_cpp }}"
+  when: "(( has_cpp ))"
 
 has_generated_changelog:
   type: bool
@@ -118,7 +178,7 @@ has_import_linter:
     Does the repository declare a layering contract in .importlinter? import-linter then checks it as a hook, whole
     tree, since a contract is about the graph rather than a file.
   default: false
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 track_benchmarks:
   type: bool
@@ -130,7 +190,7 @@ track_benchmarks:
     and the action then has nothing to compare. verification.md reserves the pytest-benchmark fixture for this case and
     sends every other measurement to pyperf, which needs no file.
   default: false
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 mypy_overrides:
   type: yaml
@@ -140,7 +200,7 @@ mypy_overrides:
     comes before pyproject.toml, so a repository's own overrides live here rather than in a section that file would
     shadow.
   default: {}
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 has_snakemake:
   type: bool
@@ -149,7 +209,7 @@ has_snakemake:
     hook, snakemake --lint checks the workflow through uv.lock as the Snakemake best practices ask, and .gitignore takes
     the snakemake-workflow-template block for the results, logs and metadata a run writes.
   default: false
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 has_notebooks:
   type: bool
@@ -158,7 +218,7 @@ has_notebooks:
 
 has_node:
   type: bool
-  help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and the labeler marks it.
+  help: Does the repository hold JavaScript or TypeScript? Dependabot then moves its npm packages.
   default: false
 
 has_chezmoi:
@@ -224,7 +284,7 @@ has_cog:
 # width was 72 in CONTRIBUTING.md and VS Code but 100 in commitlint.
 indent_width:
   type: int
-  help: Indentation for code; .editorconfig, clang-format and VS Code read it.
+  help: Indentation for code; .editorconfig and clang-format read it, and the editor takes it from .editorconfig.
   default: 4
   when: false
 
@@ -236,7 +296,7 @@ code_width:
 
 data_width:
   type: int
-  help: Where prettier wraps YAML, JSON, JavaScript and CSS.
+  help: Where prettier wraps YAML, through .prettierrc.yaml, and JavaScript and CSS, through .editorconfig.
   default: 120
   when: false
 
@@ -262,21 +322,21 @@ commit_types:
   type: yaml
   help: >-
     Conventional Commits types as @commitlint/config-conventional's type-enum publishes them, each with the
-    release-notes section it files under and the SemVer bump the specification assigns (feat is minor, fix and perf are
-    patch; a breaking change is major through the breaking label). The labels, the release drafter and its autolabeler
-    all render from this one list.
+    release-notes section it files under and the SemVer increment the specification assigns: feat is minor, and every
+    other type is patch, Release Drafter's smallest increment. Types that share a section share its increment. A
+    breaking change, a ! in the title, is major. The release drafter's categories render from this one list.
   default:
-    - { type: feat, title: New Features, bump: minor, color: "a2eeef" }
-    - { type: fix, title: Bug Fixes, bump: patch, color: "d73a4a" }
-    - { type: perf, title: Performance, bump: patch, color: "fbca04" }
-    - { type: docs, title: Documentation, bump: none, color: "0075ca" }
-    - { type: refactor, title: Maintenance, bump: none, color: "c5def5" }
-    - { type: test, title: Maintenance, bump: none, color: "bfd4f2" }
-    - { type: build, title: Maintenance, bump: none, color: "fef2c0" }
-    - { type: ci, title: Maintenance, bump: none, color: "fef2c0" }
-    - { type: chore, title: Maintenance, bump: none, color: "ededed" }
-    - { type: style, title: Maintenance, bump: none, color: "ededed" }
-    - { type: revert, title: Maintenance, bump: none, color: "ededed" }
+    - { type: feat, title: New Features, bump: minor }
+    - { type: fix, title: Bug Fixes, bump: patch }
+    - { type: perf, title: Performance, bump: patch }
+    - { type: docs, title: Documentation, bump: patch }
+    - { type: refactor, title: Maintenance, bump: patch }
+    - { type: test, title: Maintenance, bump: patch }
+    - { type: build, title: Maintenance, bump: patch }
+    - { type: ci, title: Maintenance, bump: patch }
+    - { type: chore, title: Maintenance, bump: patch }
+    - { type: style, title: Maintenance, bump: patch }
+    - { type: revert, title: Maintenance, bump: patch }
   when: false
 
 has_latex:
@@ -290,7 +350,7 @@ latex_root:
     Which file does latexmk build? The LaTeX workflow hands it to latex-action's root_file and names the PDF artefact
     after it.
   default: main.tex
-  when: "{{ has_latex }}"
+  when: "(( has_latex ))"
 
 latex_shell_escape:
   type: bool
@@ -298,4 +358,4 @@ latex_shell_escape:
     Does the build need -shell-escape, as minted, tcolorbox listings and TikZ externalisation do? latexmk refuses the
     switch unless latex-action is told to pass it.
   default: false
-  when: "{{ has_latex }}"
+  when: "(( has_latex ))"

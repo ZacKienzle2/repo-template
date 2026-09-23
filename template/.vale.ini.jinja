@@ -1,6 +1,5 @@
-# Project prose configuration. This file is identical in Orderbooks,
-# Portfolio-Optimisation, Markets and Thesis, so the prose gate reports the
-# same thing in every repository and on a runner.
+# Project prose configuration, rendered by the template so the prose gate
+# reports the same thing in every repository and on a runner.
 #
 # Vale needs a configuration file to run at all. It searches the working
 # directory upwards and then the home directory, and a runner has neither the
@@ -24,8 +23,9 @@
 # hook that checks each file as it is saved. What they do not do any longer is
 # gate a whole repository on documents nobody is editing.
 
+# MinAlertLevel is left at vale's default, suggestion, so an editor shows every
+# alert; the hooks pass --minAlertLevel=error, which fails only on errors.
 StylesPath = .cache/vale/styles
-MinAlertLevel = suggestion
 
 # ai-tells-commits and ai-tells are not in Vale's package catalog, so both
 # install by URL, in the unpinned /releases/latest/download form the catalog
@@ -50,8 +50,8 @@ BasedOnStyles = proselint
 # way to tell those from the real thing. It stays visible while writing and
 # stops failing a commit.
 proselint.Typography = warning
-{%- if has_adrs %}
-
+# % if has_adrs
+# ~
 # Architecture decision records are the one body of prose here that is written
 # now rather than inherited, so the full ai-tells set applies to them. The
 # reasoning in the Style note above is about gating whole repositories of older
@@ -82,17 +82,17 @@ ai-tells.SemicolonUsage = NO
 [docs/adr/{adr-template,README}.md]
 BasedOnStyles = proselint
 proselint.Typography = warning
-{%- endif %}
-{%- if has_generated_changelog %}
-
+# % endif
+# % if has_generated_changelog
+# ~
 # A generated CHANGELOG.md is the commit history rendered by git-cliff, and a
 # commit message is checked when it is written; a usage rule firing on a
 # subject line long after would refuse every regeneration. An empty
 # BasedOnStyles is Vale's own way to hand a file no style.
 [CHANGELOG.md]
 BasedOnStyles =
-{%- endif %}
-
+# % endif
+# ~
 # The message git hands the commit-msg hook, at both paths pre-commit passes.
 # A commit message is written at the moment it is checked, the case the Style
 # note above leaves to the stricter set, and the vale-ai-tells README layers
