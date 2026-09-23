@@ -127,23 +127,23 @@ repos:
         types: [text]
         files: ^template/\.github/workflows/[^/]+\.ya?ml([^./]*\.jinja)?$
 
-  # Medium and above fail a commit. The one low finding zizmor raises on these
-  # repositories is self-repository, which asks for GitHub's `$/` form of a
-  # same-repository action; actionlint 1.7.12 rejects that form and its two
-  # open issues for it (rhysd/actionlint#711, #732) have no maintainer reply,
-  # so `./` stays until actionlint accepts `$/` and this threshold goes.
+  # zizmor finds .github/zizmor.yml by itself, as zizmor-action does, so the
+  # hook and the workflow report the same findings at every severity. --fix
+  # applies the fixes zizmor marks safe, and pre-commit fails the commit on
+  # the rewritten file, so each fix is reviewed in the diff. args replaces the
+  # hook's own list, which is --no-progress alone, so that flag is repeated.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.30.0
     hooks:
       - id: zizmor
-        args: ["--min-severity=medium"]
+        args: ["--no-progress", "--fix"]
       # zizmor reads a .yml path wherever it is and refuses any other suffix
       # as invalid input, so the sources it reads are the workflows copied
       # verbatim; a .jinja workflow is read by actionlint and the schema.
       - id: zizmor
         alias: zizmor-sources
         name: zizmor on the workflow sources
-        args: ["--min-severity=medium"]
+        args: ["--no-progress", "--fix"]
         files: ^template/\.github/workflows/[^/]+\.ya?ml$
 
   - repo: https://github.com/rhysd/actionlint
@@ -215,10 +215,11 @@ repos:
       - id: editorconfig-checker
         args: ["-disable-max-line-length"]
 
-  # Overriding args drops the upstream --write-changes. A spell checker has no
-  # notion of syntax, and left to rewrite files it edits identifiers and
-  # extension lists. Reporting a suspected typo is useful. Applying the
-  # correction unattended is not.
+  # The hook's own args stand, --write-changes and --force-exclude. typos
+  # writes a correction only where it knows exactly one and reports the rest,
+  # and pre-commit fails the commit on the rewritten file, so each correction
+  # is reviewed in the diff. A word it gets wrong goes in _typos.toml, which
+  # is where the typos documentation puts a false positive.
   # `pre-commit autoupdate` moves this to the floating v1, which is never
   # re-resolved after the first install and warns on every commit thereafter.
   # An immutable tag is the point of pinning, so the version stays exact and
@@ -227,7 +228,6 @@ repos:
     rev: v1.50.1
     hooks:
       - id: typos
-        args: ["--force-exclude"]
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
