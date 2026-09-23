@@ -65,6 +65,11 @@ _skip_if_exists:
   # gives a fresh repository the folder repo-review's PY005 asks for and the
   # file pytest reads fixtures from, and an update never touches it.
   - tests/conftest.py
+  # A docs directory is the repository's own once it holds a page; the stub
+  # gives a fresh repository the folder repo-review's PY004 asks for and the
+  # front page Sphinx with MyST and ProperDocs both read, and an update never
+  # touches it.
+  - docs/index.md
 
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint, and the root is itself a render of
