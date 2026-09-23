@@ -81,15 +81,12 @@ repos:
       - id: name-tests-test
         args: ["--pytest-test-first"]
       # % endif
+      # The hook's default, --fix=auto, rewrites a file that mixes endings and
+      # leaves one that is consistent. .editorconfig declares each file's
+      # ending and editorconfig-checker enforces it: CRLF for .bat, .cmd and
+      # .ps1, and whatever tex-fmt writes for .tex, .sty and .cls. --fix=lf
+      # rewrote a CRLF .bat that both of those then failed.
       - id: mixed-line-ending
-        args: ["--fix=lf"]
-        # % if has_latex
-        # tex-fmt 0.5.7 writes the platform's line ending, CRLF on Windows, and
-        # refuses an LF file there, so this fix and tex-fmt undid each other on
-        # every run. `* text=auto` in .gitattributes stores .tex, .sty and .cls
-        # with LF whatever the working tree holds.
-        exclude: \.(tex|sty|cls)$
-        # % endif
       - id: trailing-whitespace
         args: ["--markdown-linebreak-ext=md,mdx"]
       - id: end-of-file-fixer

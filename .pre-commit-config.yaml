@@ -56,8 +56,12 @@ repos:
       # a second parse reporting a subset of the first.
       - id: destroyed-symlinks
       - id: forbid-submodules
+      # The hook's default, --fix=auto, rewrites a file that mixes endings and
+      # leaves one that is consistent. .editorconfig declares each file's
+      # ending and editorconfig-checker enforces it: CRLF for .bat, .cmd and
+      # .ps1, and whatever tex-fmt writes for .tex, .sty and .cls. --fix=lf
+      # rewrote a CRLF .bat that both of those then failed.
       - id: mixed-line-ending
-        args: ["--fix=lf"]
       - id: trailing-whitespace
         args: ["--markdown-linebreak-ext=md,mdx"]
       - id: end-of-file-fixer
