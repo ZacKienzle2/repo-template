@@ -543,6 +543,19 @@ repos:
         stages: [commit-msg]
         additional_dependencies: ["@commitlint/config-conventional"]
 
+  # ASCII in the commit message, which CONTRIBUTING.md asked for and no hook
+  # checked: commitlint has no rule for it and the vale styles look for words.
+  # pygrep matches the message file as bytes, so the pattern is any byte above
+  # the ASCII range. The tree is not held to this: every repository already
+  # tracks a file with an accented name in it.
+  - repo: local
+    hooks:
+      - id: ascii-commit-message
+        name: ASCII in the commit message
+        language: pygrep
+        entry: '[^\x00-\x7F]'
+        stages: [commit-msg]
+
   # Prose, which the guide does not cover. The hook entry is the bare vale
   # command, so it installs nothing the configuration names; the first entry
   # runs `vale sync` for that, which the packages documentation says to do
