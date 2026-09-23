@@ -55,11 +55,14 @@ jobs:
           # label, fails the build (latexmk 4.69+).
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -Werror
 
+      # The artifact is named after the document's file: @actions/artifact
+      # refuses a forward slash in an artifact name, which a latex_root in a
+      # subdirectory, such as reports/thesis/main-thesis.tex, would put there.
       - name: Upload PDF
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: (( document ))
+          name: (( document.split("/") | last ))
           path: (( document )).pdf
           if-no-files-found: warn
           retention-days: 14
