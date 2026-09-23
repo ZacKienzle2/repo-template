@@ -438,8 +438,8 @@ repos:
       # The workflow sources, read as the workflows they render: the .jinja
       # ones and the ones copied verbatim, which the hook above misses since
       # its pattern anchors at .github/workflows. The Dependabot source is
-      # left out: its cadence is one Jinja value the four ecosystems share,
-      # which the schema reads as a string until rendered.
+      # left out: its schedule is written by a Jinja loop, which the schema
+      # reads as a key named after the loop variable until rendered.
       - id: check-github-workflows
         alias: check-github-workflows-sources
         name: Validate the workflow sources

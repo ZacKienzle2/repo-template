@@ -2,7 +2,9 @@
 # into every entry key by key, so the entries cannot drift apart. Which
 # ecosystems appear follows the answers in .copier-answers.yml.
 # Every update carries the dependencies label, which the release drafter
-# files under its own heading.
+# files under its own heading. The template repository renders none: its root
+# is a render of its sources, which Dependabot cannot read, so its pins move
+# through its own pins workflow and a re-render.
 # % set schedule = {"interval": "weekly", "day": "monday", "time": "06:00", "timezone": "Etc/UTC"}
 # % set cooldown = {"default-days": 7}
 version: 2

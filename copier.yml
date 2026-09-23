@@ -121,9 +121,10 @@ is_template:
   type: bool
   help: >-
     Is this repository the template itself? The sources under template/ are then linted as the files they render:
-    prettier formats each YAML source, yamllint, actionlint, the workflow and Dependabot schemas read the workflow and
-    Dependabot sources, and pre-commit validates the hook source, each through the same hook it runs on the rendered
-    file. Every other repository answers false.
+    prettier formats each YAML and Markdown source, yamllint reads the YAML sources, actionlint, zizmor and the workflow
+    schema read the workflow sources, and pre-commit validates the hook source, each through the same hook it runs on
+    the rendered file. No Dependabot configuration renders, since Dependabot would edit the rendered root rather than
+    the sources. Every other repository answers false.
   default: false
 
 has_cpp:
