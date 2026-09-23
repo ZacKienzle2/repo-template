@@ -1,5 +1,4 @@
-# The files under gitignore/, gitattributes/ and snakemake-workflow-template/
-# are upstream's, unedited, and vendir.yml says which repository and paths
+# The files under gitignore/ and gitattributes/ are upstream's, unedited, and vendir.yml says which repository and paths
 # each comes from. Each was once fetched by hand and nothing moved it since.
 # `vendir sync` fetches every declared path again and records the commit it
 # took in vendir.lock.yml, and the pull request carries the difference, so a

@@ -58,12 +58,13 @@ BasedOnStyles = proselint
 # way to tell those from the real thing. It stays visible while writing and
 # stops failing a commit.
 proselint.Typography = warning
-# % if has_adrs
 # ~
 # Architecture decision records are the one body of prose here that is written
 # now rather than inherited, so the full ai-tells set applies to them. The
 # reasoning in the Style note above is about gating whole repositories of older
-# writing, and it does not apply to a directory whose every file is current.
+# writing, and it does not apply to a directory whose every file is current. A
+# section applies only to the files its glob matches, so a repository without
+# decision records is unaffected.
 #
 # The rules turned off below are turned off on the style's own advice. Each of
 # their messages names the domain it misfires on, and this is that domain. An
@@ -90,7 +91,6 @@ ai-tells.SemicolonUsage = NO
 [docs/adr/{adr-template,README}.md]
 BasedOnStyles = proselint
 proselint.Typography = warning
-# % endif
 # % if has_generated_changelog
 # ~
 # A generated CHANGELOG.md is the commit history rendered by git-cliff, and a

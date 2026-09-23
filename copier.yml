@@ -17,7 +17,14 @@
 #
 # Every question below stands for a fact about the repository that changes what
 # a configuration should say, and each was found by diffing the copies rather
-# than imagined.
+# than imagined. A fact the tool reading a file can decide for itself, from the
+# files present, is left to that tool: pre-commit selects a hook's files by
+# type, and a vale section or a markdownlint override applies only to the paths
+# it names. The answer cannot be computed from the tree instead of asked,
+# because copier update renders the old and new template in temporary
+# directories and applies the difference, so only a recorded answer moves a
+# change into an existing repository. A hook or setting that one repository
+# alone needs is that repository's own edit, which copier update keeps.
 
 _answers_file: .copier-answers.yml
 
@@ -173,14 +180,6 @@ has_python:
   help: Does the repository hold Python?
   default: true
 
-has_import_linter:
-  type: bool
-  help: >-
-    Does the repository declare a layering contract in .importlinter? import-linter then checks it as a hook, whole
-    tree, since a contract is about the graph rather than a file.
-  default: false
-  when: "(( has_python ))"
-
 track_benchmarks:
   type: bool
   help: >-
@@ -201,20 +200,6 @@ mypy_overrides:
   default: {}
   when: "(( has_python ))"
 
-has_snakemake:
-  type: bool
-  help: >-
-    Does the repository hold a Snakemake workflow under workflow/? snakefmt formats the Snakefile and rule modules as a
-    hook, snakemake --lint checks the workflow through uv.lock as the Snakemake best practices ask, and .gitignore takes
-    the snakemake-workflow-template block for the results, logs and metadata a run writes.
-  default: false
-  when: "(( has_python ))"
-
-has_notebooks:
-  type: bool
-  help: Does the repository hold Jupyter notebooks?
-  default: false
-
 has_node:
   type: bool
   help: >-
@@ -222,14 +207,6 @@ has_node:
     .gitattributes take github/gitignore's Node and gitattributes' Web blocks, prettier chooses the files it formats
     itself, TypeScript included, and ci.yml gains a job that installs the packages and runs the lint, typecheck, build
     and test scripts the repository defines.
-  default: false
-
-has_chezmoi:
-  type: bool
-  help: >-
-    Is the repository a chezmoi source directory? Its templates are named by attribute rather than by extension, so the
-    formatters and parsers are held off the .tmpl suffix, the modify_ prefix, .chezmoitemplates and the two .chezmoi
-    control files, each a Go template whatever its extension says.
   default: false
 
 gitignore_own:
@@ -252,9 +229,11 @@ precommit_exclude_own:
   type: yaml
   help: >-
     Paths no hook should read or rewrite, as a YAML list of regular expressions anchored to the root ("vendor/.*\.sty"),
-    joined into the top-level exclude of .pre-commit-config.yaml. Third-party sources kept verbatim are the case: a
-    formatter rewrites them and a linter reports style their authors chose. The expression is read in verbose mode, so a
-    literal space or # is escaped.
+    joined into the top-level exclude of .pre-commit-config.yaml. Third-party sources kept verbatim are one case: a
+    formatter rewrites them and a linter reports style their authors chose. A chezmoi source directory is another: its
+    Go templates are named by attribute rather than by extension (.*\.tmpl, (.*/)?modify_[^/]*, \.chezmoitemplates/.*,
+    \.chezmoiignore, \.chezmoiexternal\.toml), and a formatter handed one rewrites the delimiters. The expression is
+    read in verbose mode, so a literal space or # is escaped.
   default: []
 
 typos_words_own:
@@ -277,22 +256,6 @@ vale_packages_own:
     rendered one, [content/**/*.mdx] under [*.{md,mdx}], declares [*.{md,mdx}] first; otherwise the rendered section is
     read last and its BasedOnStyles replaces the package's.
   default: []
-
-has_adrs:
-  type: bool
-  help: >-
-    Does the repository keep MADR architecture decision records under docs/adr? Vale then applies the ai-tells style to
-    them, since every record is written now rather than inherited, and markdownlint requires the sections the MADR
-    template does not mark optional.
-  default: false
-
-has_cog:
-  type: bool
-  help: >-
-    Do Markdown files carry Cog blocks that generate sections from the files they describe? cog --check then runs as a
-    hook through the docs dependency group of pyproject.toml, so a section that no longer matches its source fails the
-    commit instead of going stale.
-  default: false
 
 # Values every rendered file agrees on. A question with `when: false` is never
 # asked and never recorded; its default is what every render uses, so the
@@ -367,12 +330,4 @@ latex_root:
     Which file does latexmk build? The LaTeX workflow hands it to latex-action's root_file and names the PDF artefact
     after it.
   default: main.tex
-  when: "(( has_latex ))"
-
-latex_shell_escape:
-  type: bool
-  help: >-
-    Does the build need -shell-escape, as minted, tcolorbox listings and TikZ externalisation do? latexmk refuses the
-    switch unless latex-action is told to pass it.
-  default: false
   when: "(( has_latex ))"

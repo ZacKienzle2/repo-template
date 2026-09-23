@@ -10,31 +10,16 @@
 #
 # What the guide does not cover is prose, which the vale block at the end adds.
 
-# % if has_chezmoi
-# A chezmoi source directory names its templates by attribute rather than by
-# extension, so a Go template is routinely called .json, .toml or .yaml: the
-# .tmpl suffix, the modify_ prefix, everything under .chezmoitemplates, and
-# the two .chezmoi control files that are rendered themselves. chezmoi's
-# reference lists these under source state attributes. A formatter handed one
-# rewrites the delimiters into nonsense and a parser rejects it outright,
-# which is what prettier, taplo and the check-* hooks would each do here.
-# % endif
 # % if precommit_exclude_own
 # The precommit_exclude_own answer, paths only this repository holds that no
-# hook should read or rewrite, such as third-party sources kept verbatim.
+# hook should read or rewrite, such as third-party sources kept verbatim or a
+# chezmoi source directory's Go templates.
 # % endif
 # The pattern is read in verbose mode, one alternative to a line, and
 # .copier-answers.yml is copier's own record, rewritten on every update.
 exclude: |
   (?x)^(
     \.copier-answers\.yml
-    # % if has_chezmoi
-    |.*\.tmpl
-    |\.chezmoiexternal\.toml
-    |\.chezmoiignore
-    |\.chezmoitemplates/.*
-    |(.*/)?modify_[^/]*
-    # % endif
     # % for pattern in precommit_exclude_own
     |(( pattern ))
     # % endfor
@@ -272,56 +257,12 @@ repos:
       - id: validate-pyproject
         additional_dependencies: ["validate-pyproject-schema-store[all]"]
   # % endif
-  # % if has_python and has_import_linter
   # ~
-  # import-linter checks the layering contract in .importlinter, whole tree,
-  # since a contract is about the graph. Its own hook is language: system and
-  # so needs lint-imports on PATH, which the CI runner's Python does not have;
-  # a local hook lets pre-commit install it, as validate-pyproject's does.
-  - repo: local
-    hooks:
-      - id: import-linter
-        name: import-linter
-        entry: lint-imports
-        language: python
-        additional_dependencies: [import-linter]
-        pass_filenames: false
-        files: ^(.*\.py|\.importlinter)$
-  # % endif
-  # % if has_snakemake
-  # ~
-  # snakefmt and snakemake --lint are the formatter and linter Molder et al.
-  # give for a workflow's code quality (doi:10.12688/f1000research.29032.3,
-  # section 2.2.2). snakefmt runs as its README's hook. Its default width is 88,
-  # and the flag carries the width ruff and clang-format wrap at to every file
-  # of an invocation.
-  - repo: https://github.com/snakemake/snakefmt
-    rev: v2.0.3
-    hooks:
-      - id: snakefmt
-        args: ["--line-length=(( code_width ))"]
-
-  # The linter parses the whole workflow, so it runs once through uv.lock,
-  # which declares snakemake and the modules the Snakefile imports. It exits 1
-  # while any rule lacks a software environment, so it waits at the manual stage
-  # as mypy does: `pre-commit run snakemake-lint --hook-stage manual --all-files`.
-  - repo: local
-    hooks:
-      - id: snakemake-lint
-        name: snakemake --lint
-        entry: uv run --frozen snakemake --lint
-        language: system
-        pass_filenames: false
-        files: ^(workflow|config)/
-        stages: [manual]
-  # % endif
-  # % if has_notebooks
-  # ~
+  # The hook selects notebooks by type, so a repository without one skips it.
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
       - id: nbstripout
-  # % endif
   # % if has_cpp
   # ~
   - repo: https://github.com/pre-commit/mirrors-clang-format
@@ -516,21 +457,6 @@ repos:
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
-  # % if has_cog
-  # ~
-  # Cog regenerates the Markdown sections between its markers from the files
-  # they describe, and --check fails when a committed section differs from what
-  # those files give now. Cog publishes no hook, and the generators import what
-  # the docs dependency group declares, so the hook runs through uv.lock.
-  - repo: local
-    hooks:
-      - id: cog
-        name: cog
-        entry:
-          uv run --frozen --group docs cog --check --diff --check-fail-msg="run uv run --group docs cog -r on the file"
-        language: system
-        files: '\.md$'
-  # % endif
   # ~
   # shfmt reads .editorconfig for its indent and style when given no flags,
   # so the shell scripts follow the same file every other language does.
