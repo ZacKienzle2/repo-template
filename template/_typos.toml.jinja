@@ -56,3 +56,10 @@ extend-ignore-re = [
   '\\frac\{[^}]*\}\{[^}]*\}',
 ]
 # % endif
+# % if is_template
+# ~
+# The label patterns in template/_typos.toml.jinja name LaTeX theorem
+# environments, and thm is one of those names rather than a misspelling.
+[default.extend-words]
+thm = "thm"
+# % endif
