@@ -40,9 +40,11 @@ widths = [max(len(row[column]) for row in table) for column in range(3)]
 def line(row):
     return "| " + " | ".join(cell.ljust(width) for cell, width in zip(row, widths)) + " |"
 
+cog.outl("")
 cog.outl(line(table[0]))
 cog.outl("| " + " | ".join("-" * width for width in widths) + " |")
 for row in table[1:]:
     cog.outl(line(row))
+cog.outl("")
 ]]] -->
 <!-- [[[end]]] -->
