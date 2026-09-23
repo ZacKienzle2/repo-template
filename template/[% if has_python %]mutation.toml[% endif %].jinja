@@ -5,7 +5,7 @@
 # killed, so the timeout is set well above a test file's own run time rather
 # than near it.
 [cosmic-ray]
-module-path = "src"
+module-path = "(( python_source_dir ))"
 timeout = 120.0
 excluded-modules = []
 test-command = "uv run pytest"

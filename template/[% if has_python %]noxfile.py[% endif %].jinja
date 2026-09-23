@@ -301,7 +301,7 @@ def mutants(session: nox.Session) -> None:
     if not session.posargs:
         session.error("name the module, as `nox -s mutants -- <module>`")
     module = session.posargs[0]
-    source = _find_one(session, "src", f"{module}.py")
+    source = _find_one(session, "(( python_source_dir ))", f"{module}.py")
     tests = _find_one(session, "tests", f"test_{module}.py")
 
     config = tomllib.loads(Path(_MUTATION_CONFIG).read_text(encoding="utf-8"))
