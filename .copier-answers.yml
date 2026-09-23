@@ -1,0 +1,23 @@
+# Written by copier. Do not edit by hand: `copier update` rewrites it, and a
+# hand-edited answer is the drift this template exists to remove.
+_commit: 8a1b37a
+_src_path: .
+gitattributes_own:
+- '* text=auto eol=lf'
+github_repository: ZacKienzle2/repo-template
+gitignore_own: []
+has_adrs: false
+has_ast_grep: false
+has_chezmoi: false
+has_cog: false
+has_cpp: false
+has_generated_changelog: false
+has_latex: false
+has_node: false
+has_notebooks: false
+has_python: false
+is_template: true
+precommit_exclude_own:
+- gitattributes/.*
+- gitignore/.*
+- snakemake-workflow-template/.*

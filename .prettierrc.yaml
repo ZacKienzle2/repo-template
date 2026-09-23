@@ -1,13 +1,35 @@
-# prettier reads indent and print width from .editorconfig, and this file
-# holds only what .editorconfig cannot say. proseWrap reflows Markdown at the
-# print width, which the hook used to pass as a flag. The YAML override sets a
-# print width where .editorconfig deliberately sets none: a pinned action
-# reference runs past any limit a linter would read there, but prettier still
-# needs a width, and at 120 a clang option line stays on one line, since a
-# flow mapping prettier wraps is laid out in a way yamllint's indentation rule
-# rejects.
+# prettier's defaults are the base. The widths are the template's, so
+# .editorconfig and the editor rulers state the same numbers.
 proseWrap: always
+printWidth: 80
 overrides:
   - files: ["*.yml", "*.yaml", ".clang-*", "*.cff"]
     options:
       printWidth: 120
+  # The VS Code files are serialised by Jinja's tojson with an indent of 2,
+  # which prints as JSON.stringify does. prettier's json-stringify parser keeps
+  # that whitespace, where the json parser folds a short array onto one line
+  # and copier update then conflicts on the folded lines.
+  - files: [".vscode/*.json"]
+    options:
+      parser: json-stringify
+  # Three documents the template writes with an answer inside a line of prose:
+  # the repository URL in CONTRIBUTING.md and SUPPORT.md, the package name in
+  # WORKFLOW.md. Reflowing at the print width would move a line break by the
+  # length of the answer, so the wrapping stays the source's.
+  - files: ["CONTRIBUTING.md", "SUPPORT.md", "WORKFLOW.md"]
+    options:
+      proseWrap: preserve
+  # The template's sources, formatted as the files they render: the
+  # prettier-sources hook hands prettier a .jinja path, and these name the
+  # parser for it, which prettier's overrides documentation gives as the way
+  # to format a file whose extension names no language. A Markdown source
+  # keeps its wrapping for the reason above.
+  - files: ["*.yml.jinja", "*.yaml.jinja"]
+    options:
+      parser: yaml
+      printWidth: 120
+  - files: ["*.md.jinja"]
+    options:
+      parser: markdown
+      proseWrap: preserve

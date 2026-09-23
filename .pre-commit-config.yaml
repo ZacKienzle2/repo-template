@@ -10,7 +10,17 @@
 #
 # What the guide does not cover is prose, which the vale block at the end adds.
 
-exclude: ^\.copier-answers\.yml$
+# The precommit_exclude_own answer, paths only this repository holds that no
+# hook should read or rewrite, such as third-party sources kept verbatim.
+# The pattern is read in verbose mode, one alternative to a line, and
+# .copier-answers.yml is copier's own record, rewritten on every update.
+exclude: |
+  (?x)^(
+    \.copier-answers\.yml
+    |gitattributes/.*
+    |gitignore/.*
+    |snakemake-workflow-template/.*
+  )$
 
 # pre-commit install puts in only the pre-commit stage unless told otherwise,
 # and the hooks below that run at commit-msg are silent until it is. Listing
@@ -34,14 +44,10 @@ repos:
       - id: check-symlinks
       - id: check-vcs-permalinks
       - id: check-xml
-      # --unsafe parses for syntax instead of loading, which the hook's own
-      # documentation gives as the way to accept custom tags; mkdocs' Python
-      # tags in mkdocs.yml are the case here, and the mkdocs-material
-      # documentation names this flag for exactly that.
-      - id: check-yaml
-        args: ["--allow-multiple-documents", "--unsafe"]
-      - id: check-toml
-      - id: check-json
+      # No check-yaml, check-toml or check-json: yamllint, taplo and prettier
+      # parse every file of those types below and each fails on a syntax
+      # error, measured by handing each a truncated file, so the three were
+      # a second parse reporting a subset of the first.
       - id: destroyed-symlinks
       - id: forbid-submodules
       - id: mixed-line-ending
@@ -58,6 +64,22 @@ repos:
     hooks:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
+      # The template's YAML and Markdown sources: the Jinja delimiters keep a
+      # YAML source valid YAML, and the .jinja overrides in .prettierrc.yaml
+      # name each parser, so a source is formatted as the file it renders.
+      - id: prettier
+        alias: prettier-sources
+        name: prettier on the template sources
+        types: [text]
+        files: ^template/.*\.(ya?ml|md)\.jinja$
+
+  # taplo formats TOML, which prettier does not read: pyproject, ruff, typos,
+  # lychee and cliff. uv.lock is uv's own output; taplo's defaults leave lock
+  # files alone even when handed the path, so nothing here says so.
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
 
   # Capitalisation of the names of the tools themselves, which no linter has an
   # opinion about and everyone gets wrong. The word boundaries keep an
@@ -70,32 +92,6 @@ repos:
         entry: \b(PyBind|Numpy|Cmake|CCache|Github|PyTest)\b
         exclude: \.pre-commit-config\.yaml(\.jinja)?$
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.6
-    hooks:
-      - id: ruff-check
-        args: ["--fix"]
-      - id: ruff-format
-        types_or: [python, pyi, jupyter, markdown, pyproject]
-
-  # At the manual stage until a tree type-checks: measured on the first
-  # repository to take these hooks, mypy reports 28 errors through this mirror
-  # and 101 in the project's own environment, and a hook that fails every
-  # commit touching Python until they are fixed is a gate with nothing behind
-  # it yet. `pre-commit run mypy --hook-stage manual --all-files` runs it on
-  # demand; the typing pass that clears it moves it back to the commit.
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.1
-    hooks:
-      - id: mypy
-        stages: [manual]
-
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: "0.26"
-    hooks:
-      - id: validate-pyproject
-        additional_dependencies: ["validate-pyproject-schema-store[all]"]
-
   # Schemas rather than opinions: each of these is the published schema for the
   # file it reads, so a workflow or a Dependabot configuration that GitHub
   # would reject fails here instead.
@@ -104,27 +100,96 @@ repos:
     hooks:
       - id: check-dependabot
       - id: check-github-workflows
+      # The workflow sources, read as the workflows they render: the .jinja
+      # ones and the ones copied verbatim, which the hook above misses since
+      # its pattern anchors at .github/workflows. The Dependabot source is
+      # left out: its cadence is one Jinja value the four ecosystems share,
+      # which the schema reads as a string until rendered.
+      - id: check-github-workflows
+        alias: check-github-workflows-sources
+        name: Validate the workflow sources
+        # check-jsonschema reads a file's type from its extension and falls
+        # back to JSON; the option names YAML for a .jinja path.
+        args: ["--default-filetype", "yaml"]
+        types: [text]
+        files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
 
+  # Medium and above fail a commit. The one low finding zizmor raises on these
+  # repositories is self-repository, which asks for GitHub's `$/` form of a
+  # same-repository action; actionlint 1.7.12 rejects that form and its two
+  # open issues for it (rhysd/actionlint#711, #732) have no maintainer reply,
+  # so `./` stays until actionlint accepts `$/` and this threshold goes.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.30.0
     hooks:
       - id: zizmor
+        args: ["--min-severity=medium"]
+      # zizmor reads a .yml path wherever it is and refuses any other suffix
+      # as invalid input, so the sources it reads are the workflows copied
+      # verbatim; a .jinja workflow is read by actionlint and the schema.
+      - id: zizmor
+        alias: zizmor-sources
+        name: zizmor on the workflow sources
+        args: ["--min-severity=medium"]
+        files: ^template/\.github/workflows/[^/]+\.ya?ml$
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
       - id: actionlint
+      - id: actionlint
+        alias: actionlint-sources
+        name: actionlint on the workflow sources
+        types: [text]
+        files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
       - id: yamllint
         args: ["--strict", "--config-file=.yamllint.yaml"]
+      - id: yamllint
+        alias: yamllint-sources
+        name: yamllint on the template sources
+        args: ["--strict", "--config-file=.yamllint.yaml"]
+        types: [text]
+        files: ^template/.*\.ya?ml\.jinja$
+
+  # The hook source itself, read by `pre-commit validate-config`, the check
+  # pre-commit runs on a rendered configuration. pre-commit publishes a hook
+  # for a manifest and none for a configuration, so the command runs from
+  # its own package in a hook environment.
+  - repo: local
+    hooks:
+      - id: validate-config-source
+        name: pre-commit validate-config on the hook source
+        entry: pre-commit validate-config
+        language: python
+        additional_dependencies: [pre-commit]
+        files: ^template/\.pre-commit-config\.yaml\.jinja$
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
+
+  # docs/tooling.md is generated from this file and the workflows by the Cog
+  # block in it, so a hook or action moved without the regeneration fails
+  # here. The generator reads both through ruamel.yaml, which keeps the
+  # version comment a pinned action carries, so cogapp and that parser run in
+  # pre-commit's own environment, and the trigger is the files the generator
+  # reads rather than the file it writes. docs/tooling.md itself states the
+  # command that regenerates it.
+  - repo: local
+    hooks:
+      - id: tooling-index
+        name: docs/tooling.md matches the hooks and workflows
+        entry: cog
+        args: ["-U", "--check", "--diff", "docs/tooling.md"]
+        language: python
+        additional_dependencies: [cogapp, ruamel.yaml]
+        pass_filenames: false
+        files: ^(docs/tooling\.md|\.pre-commit-config\.yaml|\.github/workflows/[^/]+\.yml)$
 
   # shfmt reads .editorconfig for its indent and style when given no flags,
   # so the shell scripts follow the same file every other language does.
@@ -164,10 +229,32 @@ repos:
     hooks:
       - id: gitleaks
 
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.4.0
+  # commitlint at the commit, reading commitlint.config.mjs, the file the
+  # Commit Lint workflow reads. conventional-pre-commit stood here before and
+  # carried its own grammar: it passed an 89 column header and a body with no
+  # blank line after the subject, both of which that config rejects, so the
+  # rules were enforced on the pull request and not at the commit. The hook is
+  # commitlint's own CLI under pre-commit's node language, and the shared
+  # configuration the config extends is installed beside it, which is what the
+  # hook's README asks for.
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.26.0
     hooks:
-      - id: conventional-pre-commit
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/config-conventional"]
+
+  # ASCII in the commit message, which CONTRIBUTING.md asked for and no hook
+  # checked: commitlint has no rule for it and the vale styles look for words.
+  # pygrep matches the message file as bytes, so the pattern is any byte above
+  # the ASCII range. The tree is not held to this: every repository already
+  # tracks a file with an accented name in it.
+  - repo: local
+    hooks:
+      - id: ascii-commit-message
+        name: ASCII in the commit message
+        language: pygrep
+        entry: '[^\x00-\x7F]'
         stages: [commit-msg]
 
   # Prose, which the guide does not cover. The hook entry is the bare vale
