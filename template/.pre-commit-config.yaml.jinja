@@ -64,14 +64,10 @@ repos:
       - id: check-symlinks
       - id: check-vcs-permalinks
       - id: check-xml
-      # --unsafe parses for syntax instead of loading, which the hook's own
-      # documentation gives as the way to accept custom tags; mkdocs' Python
-      # tags in mkdocs.yml are the case here, and the mkdocs-material
-      # documentation names this flag for exactly that.
-      - id: check-yaml
-        args: ["--allow-multiple-documents", "--unsafe"]
-      - id: check-toml
-      - id: check-json
+      # No check-yaml, check-toml or check-json: yamllint, taplo and prettier
+      # parse every file of those types below and each fails on a syntax
+      # error, measured by handing each a truncated file, so the three were
+      # a second parse reporting a subset of the first.
       - id: destroyed-symlinks
       - id: forbid-submodules
 {%- if has_python %}
