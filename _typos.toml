@@ -1,8 +1,8 @@
 # Managed by copier from ZacKienzle2/repo-template. typos' defaults already
 # skip lock files and certificates, whatever .gitignore names, and hidden
-# files, so no path list repeats those. A repository's own vocabulary goes
-# after this block under [default.extend-words] or
-# [default.extend-identifiers], which copier update carries forward.
+# files, so no path list repeats those. A repository's own vocabulary is the
+# typos_words and typos_identifiers answers, rendered at the end of this file,
+# rather than an edit here that every update has to merge again.
 
 # typos walks past a hidden file but checks any path it is handed, which is how
 # the hook hands it .gitignore. The assembled file is a list of file extensions
@@ -18,7 +18,10 @@ check-file = false
 extend-glob = [".gitattributes", "*.gitattributes"]
 check-file = false
 
+# This repository's own vocabulary, the typos_words answer. One entry to a
+# line, rather than a pattern in an array, because taplo reflows an array by
+# its width and a render would then match the formatter only at some lengths.
+[default.extend-words]
 # The label patterns in template/_typos.toml.jinja name LaTeX theorem
 # environments, and thm is one of those names rather than a misspelling.
-[default.extend-words]
 thm = "thm"

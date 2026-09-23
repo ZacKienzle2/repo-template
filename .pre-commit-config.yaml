@@ -128,6 +128,8 @@ repos:
   # same-repository action; actionlint 1.7.12 rejects that form and its two
   # open issues for it (rhysd/actionlint#711, #732) have no maintainer reply,
   # so `./` stays until actionlint accepts `$/` and this threshold goes.
+  # zizmor.yml passes the same threshold to the action, because zizmor takes
+  # it from the command line and reads none from .zizmor.yml.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.30.0
     hooks:

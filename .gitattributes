@@ -4,6 +4,23 @@
 # which of them apply follows the answers in .copier-answers.yml. A rule of
 # this repository's own, such as a Git LFS filter, is the gitattributes_own
 # answer, rendered at the end, so nothing in this file is written by hand.
+
+# Upstream's Common.gitattributes sets `* text=auto` and leaves the working
+# tree's endings to core.autocrlf, which is set per machine. On Windows that
+# checks out CRLF, so a formatter or a script that writes one LF line into a
+# checked out file makes that file genuinely mixed; the mixed-line-ending hook
+# then rewrites the whole file and fails the commit, and the rewrite produces
+# no diff because the index normalises either way. Measured at 205 files
+# rewritten per run on a Windows checkout of Orderbooks.
+#
+# Naming eol here settles it in the repository rather than on each machine, and
+# it agrees with the hook's --fix=lf. A later line overrides an earlier one
+# attribute by attribute, so upstream's `* text=auto` below does not clear this
+# eol, and the `*.bat`, `*.cmd`, `*.ps1` and `*.csv` lines that ask for CRLF
+# still win for those extensions. Adopting this renormalises a Windows working
+# tree once; the index and every other platform are unchanged.
+*          text=auto eol=lf
+
 # Common settings that generally should always be used with your language specific settings
 
 # Auto detect text files and perform LF normalization
@@ -102,6 +119,3 @@
 .gitattributes export-ignore
 .gitignore     export-ignore
 .gitkeep       export-ignore
-
-# This repository's own, the gitattributes_own answer in .copier-answers.yml.
-* text=auto eol=lf
