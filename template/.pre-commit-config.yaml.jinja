@@ -498,12 +498,17 @@ repos:
       # % endif
   # % if is_template
   # ~
-  # The hook source itself, read by pre-commit's own validator, which is the
-  # check `pre-commit validate-config` runs on a rendered configuration.
-  - repo: https://github.com/pre-commit/pre-commit
-    rev: v4.6.2
+  # The hook source itself, read by `pre-commit validate-config`, the check
+  # pre-commit runs on a rendered configuration. pre-commit publishes a hook
+  # for a manifest and none for a configuration, so the command runs from
+  # its own package in a hook environment.
+  - repo: local
     hooks:
-      - id: validate_config
+      - id: validate-config-source
+        name: pre-commit validate-config on the hook source
+        entry: pre-commit validate-config
+        language: python
+        additional_dependencies: [pre-commit]
         files: ^template/\.pre-commit-config\.yaml\.jinja$
   # % endif
   # ~
