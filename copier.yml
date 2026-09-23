@@ -88,8 +88,8 @@ package_name:
 has_cpp:
   type: bool
   help: >-
-    Does the repository hold C or C++ built with CMake? clang keeps its own configuration in .clang-format and
-    .clang-tidy, which are YAML by shape and clang's convention by content, so yamllint is told to leave them alone.
+    Does the repository hold C or C++ built with CMake? clang-format, cmake-format, cmake-lint and cppcheck then run as
+    hooks, .clang-format and .cmake-format.json render with the shared widths, and CodeQL analyses C and C++.
   default: false
 
 cpp_source_dir:
@@ -247,7 +247,7 @@ code_width:
 
 data_width:
   type: int
-  help: Where prettier wraps YAML, JSON, JavaScript and CSS.
+  help: Where prettier wraps YAML, through .prettierrc.yaml, and JavaScript and CSS, through .editorconfig.
   default: 120
   when: false
 
