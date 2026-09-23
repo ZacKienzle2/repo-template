@@ -93,6 +93,39 @@ jobs:
           SKIP: pyright,ast-grep,import-linter
         run: uvx pre-commit run --all-files
 
+  root:
+    name: Check the root is a render of the sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      # copier recopy renders the template again from the answers in
+      # .copier-answers.yml and overwrites every file it writes, which is
+      # copier's documented way to reapply a template from scratch. A change
+      # to a source that was not rendered into the root, or a hand edit to a
+      # rendered file, is then a difference in the tree. The answers file
+      # records the commit it was rendered from, which moves with every
+      # commit, so it is left out of the comparison.
+      - name: Render the root again from its answers
+        run: uvx copier recopy --trust --force --quiet
+
+      - name: Compare the render with the committed root
+        run: |
+          git add --all
+          git diff --cached --exit-code -- . ':!.copier-answers.yml'
+
   pins:
     name: Verify the action pins in the sources
     runs-on: ubuntu-latest

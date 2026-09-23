@@ -1,12 +1,15 @@
 # The pins in the template's sources. Dependabot reads /.github/workflows and
-# a file named .pre-commit-config.yaml alone, so the rendered root moves
-# through it and the sources under template/ through the tools that read any
-# path: pinact takes the files .pinact.yaml lists, and `pre-commit autoupdate`
-# takes the hook source through --config, which the Jinja delimiters keep a
-# valid YAML file. Both write into the checkout, and one pull request carries
-# the result. autoupdate takes the newest tag reachable from a repository's
-# default branch, which for pocc/pre-commit-hooks and gitleaks was older than
-# the pin, so the review reads the diff before merging.
+# a file named .pre-commit-config.yaml alone, which here are the rendered root
+# rather than the sources under template/, so the template renders no
+# Dependabot configuration for itself and this workflow moves its pins with
+# the tools that read any path: pinact takes the files .pinact.yaml lists,
+# `pre-commit autoupdate` takes the hook source through --config, which the
+# Jinja delimiters keep a valid YAML file, and copier recopy then renders the
+# root again from the moved sources. All three write into the checkout, and
+# one pull request carries the result. autoupdate takes the newest tag
+# reachable from a repository's default branch, which for
+# pocc/pre-commit-hooks and gitleaks was older than the pin, so the review
+# reads the diff before merging.
 name: Pins
 
 on:
@@ -57,6 +60,14 @@ jobs:
       - name: Move the hook revisions
         run: uvx pre-commit autoupdate --config template/.pre-commit-config.yaml.jinja
 
+      # With changes in the checkout, copier renders from a draft commit of
+      # its own and records that hash in the answers file, where it names
+      # nothing, so the file keeps the commit it already recorded.
+      - name: Render the root from the moved sources
+        run: |
+          uvx copier recopy --trust --force --quiet
+          git checkout -- .copier-answers.yml
+
       - name: Open the pull request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
@@ -67,6 +78,7 @@ jobs:
           title: "ci(template): move the pins to their current releases"
           body: |
             Each action pin moved by pinact and each hook revision by
-            `pre-commit autoupdate`, in the sources under template/ and in
-            the root workflows. A major version is here as well as a patch,
-            so read the release notes of each before merging.
+            `pre-commit autoupdate` in the sources under template/, and the
+            root rendered again from them by `copier recopy`. A major version
+            is here as well as a patch, so read the release notes of each
+            before merging.
