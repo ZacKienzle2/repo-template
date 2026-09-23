@@ -92,3 +92,28 @@ jobs:
         env:
           SKIP: pyright,ast-grep,import-linter
         run: uvx pre-commit run --all-files
+
+  pins:
+    name: Verify the action pins in the sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # fix false is the action's validation mode: every action in the files
+      # .pinact.yaml lists must be pinned to a full commit, and verify checks
+      # that each version comment names the tag the commit is.
+      - name: Check the pins and their version comments
+        uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
+        with:
+          config: .pinact.yaml
+          fix: "false"
+          verify: "true"
