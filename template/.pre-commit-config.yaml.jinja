@@ -572,10 +572,11 @@ repos:
       - id: editorconfig-checker
         args: ["-disable-max-line-length"]
 
-  # Overriding args drops the upstream --write-changes. A spell checker has no
-  # notion of syntax, and left to rewrite files it edits identifiers and
-  # extension lists. Reporting a suspected typo is useful. Applying the
-  # correction unattended is not.
+  # The hook's own args stand, --write-changes and --force-exclude. typos
+  # writes a correction only where it knows exactly one and reports the rest,
+  # and pre-commit fails the commit on the rewritten file, so each correction
+  # is reviewed in the diff. A word it gets wrong goes in _typos.toml, which
+  # is where the typos documentation puts a false positive.
   # `pre-commit autoupdate` moves this to the floating v1, which is never
   # re-resolved after the first install and warns on every commit thereafter.
   # An immutable tag is the point of pinning, so the version stays exact and
@@ -584,7 +585,6 @@ repos:
     rev: v1.50.1
     hooks:
       - id: typos
-        args: ["--force-exclude"]
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
