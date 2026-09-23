@@ -1,0 +1,23 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+  - contents:
+      - git:
+          commitTitle: "Merge pull request #4870 from lissy93-forks/ignore-kotlin-gradle..."
+          sha: 356fd7baab4c05e092194a41f64dbd5afc8817e4
+        path: .
+    path: gitignore
+  - contents:
+      - git:
+          commitTitle: Remove dead link
+          sha: 2c20a14833a5ab196c7fc3effcc72ef4e895f4d4
+        path: .
+    path: gitattributes
+  - contents:
+      - git:
+          commitTitle: "Merge pull request #28 from snakemake-workflows/release-please--branches--main..."
+          sha: 28ddb974333d1239038c9599c9a4ef8cfc27c704
+          tags:
+            - v1.3.0
+        path: .
+    path: snakemake-workflow-template
+kind: LockConfig

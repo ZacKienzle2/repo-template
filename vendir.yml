@@ -20,6 +20,7 @@ directories:
           - C++.gitignore
           - CMake.gitignore
           - TeX.gitignore
+          - Node.gitignore
   - path: gitattributes
     contents:
       - path: .
@@ -31,6 +32,7 @@ directories:
           - Common.gitattributes
           - C++.gitattributes
           - Python.gitattributes
+          - Web.gitattributes
   - path: snakemake-workflow-template
     contents:
       - path: .
