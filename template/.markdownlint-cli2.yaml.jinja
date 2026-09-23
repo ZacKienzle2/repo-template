@@ -1,6 +1,10 @@
 # markdownlint-cli2 finds this file by name, so the hook needs no --config, and
 # it reads the generated ignore file rather than repeating what that lists.
 gitignore: true
+# The schema leaves fix off by default. On, the hook applies each rule's own
+# fix, and pre-commit fails the commit on the rewritten file, so each fix is
+# reviewed in the diff.
+fix: true
 # % if has_generated_changelog
 # ~
 # CHANGELOG.md is git-cliff's rendering of the commit history, so a rule firing
