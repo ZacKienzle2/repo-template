@@ -1,0 +1,13 @@
+{#- The reviewer is the repository owner, read from github_repository as
+    CODEOWNERS reads it, so no account name is written here. -#}
+addReviewers: true
+addAssignees: author
+
+reviewers:
+  - {{ github_repository.split("/")[0] }}
+
+numberOfReviewers: 1
+
+skipKeywords:
+  - "work-in-progress"
+  - "wip"
