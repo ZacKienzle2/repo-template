@@ -16,3 +16,24 @@ config:
 
   MD024:
     siblings_only: true
+
+# The MADR template marks every section optional except the problem statement,
+# the considered options and the decision outcome, so MD043 requires those three
+# in that order below the title of each numbered record. The filter leaves out
+# the template and the README that MADR ships beside the records. An override
+# applies only to files already in scope, so a repository without decision
+# records is unaffected.
+overrides:
+  - filter:
+      - "docs/adr/[0-9]*.md"
+    combine: merge
+    config:
+      MD043:
+        headings:
+          - "?"
+          - "## Context and Problem Statement"
+          - "*"
+          - "## Considered Options"
+          - "*"
+          - "## Decision Outcome"
+          - "*"

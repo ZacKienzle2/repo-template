@@ -11,7 +11,8 @@
 # What the guide does not cover is prose, which the vale block at the end adds.
 
 # The precommit_exclude_own answer, paths only this repository holds that no
-# hook should read or rewrite, such as third-party sources kept verbatim.
+# hook should read or rewrite, such as third-party sources kept verbatim or a
+# chezmoi source directory's Go templates.
 # The pattern is read in verbose mode, one alternative to a line, and
 # .copier-answers.yml is copier's own record, rewritten on every update.
 exclude: |
@@ -19,7 +20,6 @@ exclude: |
     \.copier-answers\.yml
     |gitattributes/.*
     |gitignore/.*
-    |snakemake-workflow-template/.*
     |vendir\.lock\.yml
   )$
 
@@ -104,6 +104,12 @@ repos:
         language: pygrep
         entry: \b(PyBind|Numpy|Cmake|CCache|Github|PyTest)\b
         exclude: \.pre-commit-config\.yaml(\.jinja)?$
+
+  # The hook selects notebooks by type, so a repository without one skips it.
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
 
   # Schemas rather than opinions: each of these is the published schema for the
   # file it reads, so a workflow or a Dependabot configuration that GitHub
