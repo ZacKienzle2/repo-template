@@ -544,9 +544,6 @@ repos:
           uv run --frozen --group docs cog --check --diff --check-fail-msg="run uv run --group docs cog -r on the file"
         language: system
         files: '\.md$'
-        # docs/tooling.md is the tooling-index hook's, whose environment has
-        # the parser its generator imports.
-        exclude: ^docs/tooling\.md$
   # % endif
   # ~
   # shfmt reads .editorconfig for its indent and style when given no flags,
