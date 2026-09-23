@@ -133,11 +133,18 @@ repos:
         types: [text]
         files: ^template/\.github/workflows/[^/]+\.ya?ml([^./]*\.jinja)?$
 
-  # zizmor finds .github/zizmor.yml by itself, as zizmor-action does, so the
-  # hook and the workflow report the same findings at every severity. --fix
-  # applies the fixes zizmor marks safe, and pre-commit fails the commit on
-  # the rewritten file, so each fix is reviewed in the diff. args replaces the
-  # hook's own list, which is --no-progress alone, so that flag is repeated.
+  # zizmor reports at every severity, as zizmor-action does, so the hook and
+  # code scanning agree. A finding that cannot be fixed yet is ignored where
+  # it occurs with zizmor's `# zizmor: ignore[audit]` comment and its reason,
+  # which zizmor still counts as ignored: self-repository asks for GitHub's
+  # `$/` form, which actionlint 1.7.12 rejects (rhysd/actionlint#711, #732),
+  # so each `uses: ./` line carries one until actionlint accepts `$/`. A
+  # severity threshold hid every other low finding, and a disabled audit is
+  # left out of zizmor's counts, which its documentation calls a last resort.
+  # --fix applies the fixes zizmor marks safe, and pre-commit fails the
+  # commit on the rewritten file, so each fix is reviewed in the diff. args
+  # replaces the hook's own list, which is --no-progress alone, so that flag
+  # is repeated.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.30.0
     hooks:
