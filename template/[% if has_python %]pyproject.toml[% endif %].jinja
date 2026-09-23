@@ -105,9 +105,11 @@ docs = ["cogapp>=3"]
 # Google docstrings on every public function, method and class and gives this
 # exact pair as what enforces them. The guide does not select D.
 #
-# ISC is left out although the guide lists it. ruff's formatter documentation
-# names ISC001 as a rule that conflicts with the formatter, and a selection
-# holding it prints a warning on every run.
+# ISC is selected although the guide says it may collide with the formatter.
+# ruff's formatter documentation no longer lists ISC001 among the conflicting
+# rules, since the formatter joins an implicit concatenation that fits on one
+# line, and lists ISC002 only alongside allow-multiline = false, which is not
+# set here. ruff format prints no warning with it selected.
 #
 # No target-version: ruff's settings reference recommends
 # project.requires-python over it.
@@ -132,6 +134,7 @@ extend-select = [
   "I",    # isort, which the formatter does not do
   "N",    # pep8-naming, which python.md defers to ruff, like D below
   "ICN",  # flake8-import-conventions
+  "ISC",  # flake8-implicit-str-concat
   "LOG",  # flake8-logging
   "PIE",  # flake8-pie
   "NPY",  # NumPy specific rules
