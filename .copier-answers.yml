@@ -1,6 +1,6 @@
 # Written by copier. Do not edit by hand: `copier update` rewrites it, and a
 # hand-edited answer is the drift this template exists to remove.
-_commit: v1.2.0-15-g4740a15
+_commit: v1.2.0-9-g7aa4138
 _src_path: .
 gitattributes_own:
 - '* text=auto eol=lf'
