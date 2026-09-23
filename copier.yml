@@ -21,6 +21,30 @@
 
 _answers_file: .copier-answers.yml
 
+# Jinja delimiters that leave every YAML source a valid YAML file. A block tag
+# is a line statement, `# % if has_python`, which YAML, TOML, INI, gitignore
+# and Python each read as a comment, yamllint accepts for the space after the
+# hash, and Jinja removes with its line; a
+# variable is `(( name ))`, which YAML reads as a plain scalar since `(` is
+# not an indicator, and Windows accepts in a file name where `<` and `>` are
+# refused; and `${{ }}` in a workflow is no longer Jinja, so no raw block
+# wraps it. The sources are therefore what pinact, pre-commit autoupdate,
+# actionlint, zizmor, the schema checks and prettier read, in place of a
+# render mapped back by hand. `[% %]` and `[# #]` remain for a block inside a
+# line, in a file name or in Markdown. Jinja documents each option under
+# Environment, and the line statement under Line Statements. Copier's own
+# default is the one entry it changes from Jinja's, and a run block that
+# holds a `$((` arithmetic expansion would need a comment to escape it.
+_envops:
+  keep_trailing_newline: true
+  block_start_string: "[%"
+  block_end_string: "%]"
+  variable_start_string: "(("
+  variable_end_string: "))"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  line_statement_prefix: "# %"
+
 # Rendered once, never updated: pyproject.toml is a repository's own file,
 # but ruff.toml extends it and mypy.ini stands in for its [tool.mypy], so a
 # repository rendered before `uv init` needs one to exist. A repository that
@@ -35,7 +59,7 @@ _answers_file: .copier-answers.yml
 _skip_if_exists:
   - pyproject.toml
   - README.md
-  - "src/{{ package_name }}/__init__.py"
+  - "src/(( package_name ))/__init__.py"
   # A tests directory is the repository's own once it holds a test; the stub
   # gives a fresh repository the folder repo-review's PY005 asks for and the
   # file pytest reads fixtures from, and an update never touches it.
@@ -50,8 +74,8 @@ _tasks:
   - ["uvx", "--from", "cogapp", "--with", "ruamel.yaml", "cog", "-r", "docs/tooling.md"]
 
 # The template's sources live here, so the repository root is an ordinary
-# project that its own hooks can lint. Without the split, yamllint and the
-# workflow schema check read the .jinja sources and reject the Jinja in them.
+# project that its own hooks can lint, and the root is itself a render of
+# them: .copier-answers.yml at the root answers is_template true.
 _subdirectory: template
 
 _message_after_copy: |
@@ -75,7 +99,7 @@ github_repository:
     The repository as owner/name on GitHub. Issue form contact links, SUPPORT.md, CONTRIBUTING.md, CODEOWNERS and the
     changelog's commit and compare links are built from it. No default: copier hands a template a pure path for the
     destination, which cannot name the directory, so the first render is told and every update reads the answer back.
-  validator: "{% if not github_repository or '/' not in github_repository %}owner/name{% endif %}"
+  validator: "[% if not github_repository or '/' not in github_repository %]owner/name[% endif %]"
 
 package_name:
   type: str
@@ -83,8 +107,17 @@ package_name:
     The importable name, derived from the repository name rather than asked. copier renders a path one segment at a
     time, so a segment cannot hold a slash and the expression that splits github_repository cannot appear in a directory
     name. Naming it once here is also what stops pyproject.toml and the source directory computing it twice.
-  default: "{{ github_repository.split('/')[1] | lower | replace('-', '_') }}"
+  default: "(( github_repository.split('/')[1] | lower | replace('-', '_') ))"
   when: false
+
+is_template:
+  type: bool
+  help: >-
+    Is this repository the template itself? The sources under template/ are then linted as the files they render:
+    prettier formats each YAML source, yamllint, actionlint, the workflow and Dependabot schemas read the workflow and
+    Dependabot sources, and pre-commit validates the hook source, each through the same hook it runs on the rendered
+    file. Every other repository answers false.
+  default: false
 
 has_cpp:
   type: bool
@@ -99,7 +132,7 @@ cpp_source_dir:
     Which directory holds the CMake project and its CMakePresets.json? The sanitizer workflow runs cmake there and
     watches that directory, so a repository whose C++ sits in a subdirectory names it once here.
   default: "."
-  when: "{{ has_cpp }}"
+  when: "(( has_cpp ))"
 
 cpp_sanitizer_presets:
   type: yaml
@@ -110,7 +143,7 @@ cpp_sanitizer_presets:
     the one place they are written. The action installs the toolchain and reports its compilers as cc and cxx outputs,
     which the workflow hands CMake as CC and CXX. An empty mapping renders no workflow.
   default: {}
-  when: "{{ has_cpp }}"
+  when: "(( has_cpp ))"
 
 has_generated_changelog:
   type: bool
@@ -130,7 +163,7 @@ has_import_linter:
     Does the repository declare a layering contract in .importlinter? import-linter then checks it as a hook, whole
     tree, since a contract is about the graph rather than a file.
   default: false
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 track_benchmarks:
   type: bool
@@ -142,7 +175,7 @@ track_benchmarks:
     and the action then has nothing to compare. verification.md reserves the pytest-benchmark fixture for this case and
     sends every other measurement to pyperf, which needs no file.
   default: false
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 mypy_overrides:
   type: yaml
@@ -152,7 +185,7 @@ mypy_overrides:
     comes before pyproject.toml, so a repository's own overrides live here rather than in a section that file would
     shadow.
   default: {}
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 has_snakemake:
   type: bool
@@ -161,7 +194,7 @@ has_snakemake:
     hook, snakemake --lint checks the workflow through uv.lock as the Snakemake best practices ask, and .gitignore takes
     the snakemake-workflow-template block for the results, logs and metadata a run writes.
   default: false
-  when: "{{ has_python }}"
+  when: "(( has_python ))"
 
 has_notebooks:
   type: bool
@@ -302,7 +335,7 @@ latex_root:
     Which file does latexmk build? The LaTeX workflow hands it to latex-action's root_file and names the PDF artefact
     after it.
   default: main.tex
-  when: "{{ has_latex }}"
+  when: "(( has_latex ))"
 
 latex_shell_escape:
   type: bool
@@ -310,4 +343,4 @@ latex_shell_escape:
     Does the build need -shell-escape, as minted, tcolorbox listings and TikZ externalisation do? latexmk refuses the
     switch unless latex-action is told to pass it.
   default: false
-  when: "{{ has_latex }}"
+  when: "(( has_latex ))"

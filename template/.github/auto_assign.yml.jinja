@@ -1,10 +1,10 @@
-{#- The reviewer is the repository owner, read from github_repository as
-    CODEOWNERS reads it, so no account name is written here. -#}
+# Rendered by copier: the reviewer is the owner half of github_repository in
+# .copier-answers.yml, the same account CODEOWNERS names.
 addReviewers: true
 addAssignees: author
 
 reviewers:
-  - {{ github_repository.split("/")[0] }}
+  - (( github_repository.split("/")[0] ))
 
 numberOfReviewers: 1
 

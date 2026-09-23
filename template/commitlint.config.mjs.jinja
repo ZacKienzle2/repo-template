@@ -12,7 +12,7 @@
  * leading-blank rules to warning; a message that runs the subject into the
  * body is malformed rather than untidy, so both are errors here. The package
  * allows 100 columns for the header and each body line; git's own convention
- * is {{ commit_width }}, which is what CONTRIBUTING.md and the editor say, so
+ * is (( commit_width )), which is what CONTRIBUTING.md and the editor say, so
  * the limit is the template's commit_width rather than a second number.
  *
  * An ES module because wagoid/commitlint-github-action, which runs this in
@@ -33,7 +33,7 @@ export default {
   rules: {
     "body-leading-blank": [2, "always"],
     "footer-leading-blank": [2, "always"],
-    "header-max-length": [2, "always", {{ commit_width }}],
-    "body-max-line-length": [2, "always", {{ commit_width }}],
+    "header-max-length": [2, "always", (( commit_width ))],
+    "body-max-line-length": [2, "always", (( commit_width ))],
   },
 };

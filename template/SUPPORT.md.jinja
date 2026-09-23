@@ -1,4 +1,4 @@
-{%- set repo_url = "https://github.com/" ~ github_repository -%}
+[%- set repo_url = "https://github.com/" ~ github_repository -%]
 # Support
 
 ## How to Get Help
@@ -42,11 +42,11 @@ reproducibility.
 - [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) - community standards
 - [SECURITY](SECURITY.md) - vulnerability disclosure
 - [docs/tooling.md](docs/tooling.md) - every check the repository runs
-{%- if has_generated_changelog %}
+[%- if has_generated_changelog %]
 - [CHANGELOG](CHANGELOG.md) - release history, written by the first release
-{%- endif %}
+[%- endif %]
 
-[GitHub Discussions]: {{ repo_url }}/discussions
-[bug report template]: {{ repo_url }}/issues/new?template=bug_report.yml
-[existing issues]: {{ repo_url }}/issues?q=is%3Aissue
-[feature request template]: {{ repo_url }}/issues/new?template=feature_request.yml
+[GitHub Discussions]: (( repo_url ))/discussions
+[bug report template]: (( repo_url ))/issues/new?template=bug_report.yml
+[existing issues]: (( repo_url ))/issues?q=is%3Aissue
+[feature request template]: (( repo_url ))/issues/new?template=feature_request.yml

@@ -1,10 +1,10 @@
-{#- Runs when a version tag is pushed. release-drafter has been drafting the
-    notes from pull request labels as they merged; here it publishes that
-    draft under the tag. The SBOMs are anchore's, attested with GitHub's own
-    provenance action and attached with the runner's gh, which is zizmor's
-    remediation for a release action. Whether the tag is a prerelease is an
-    expression on its name, and the trigger's pattern is what makes the name
-    safe to pass on. -#}
+# Runs when a version tag is pushed. release-drafter has been drafting the
+# notes from pull request labels as they merged; here it publishes that
+# draft under the tag. The SBOMs are anchore's, attested with GitHub's own
+# provenance action and attached with the runner's gh, which is zizmor's
+# remediation for a release action. Whether the tag is a prerelease is an
+# expression on its name, and the trigger's pattern is what makes the name
+# safe to pass on.
 name: Release
 
 on:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: {% raw %}release-${{ github.ref }}{% endraw %}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -43,16 +43,16 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-{%- if has_generated_changelog %}
+      # % if has_generated_changelog
 
       - name: Regenerate the changelog
         uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         with:
           config: cliff.toml
-          args: {% raw %}--verbose --tag ${{ github.ref_name }}{% endraw %}
+          args: --verbose --tag ${{ github.ref_name }}
         env:
           OUTPUT: CHANGELOG.md
-{%- endif %}
+      # % endif
 
       - name: Generate SBOM (SPDX)
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
@@ -85,16 +85,16 @@ jobs:
         uses: release-drafter/release-drafter@6a93d829887aa2e0748befe2e808c66c0ec6e4c7 # v6.4.0
         with:
           publish: true
-          tag: {% raw %}${{ github.ref_name }}{% endraw %}
-          name: {% raw %}${{ github.ref_name }}{% endraw %}
-          prerelease: {% raw %}${{ contains(github.ref_name, '-') }}{% endraw %}
-          commitish: {% raw %}${{ github.sha }}{% endraw %}
+          tag: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          commitish: ${{ github.sha }}
           disable-autolabeler: true
         env:
-          GITHUB_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Attach the SBOMs{% if has_generated_changelog %} and the changelog{% endif %}
+      - name: Attach the SBOMs[% if has_generated_changelog %] and the changelog[% endif %]
         env:
-          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
-          TAG: {% raw %}${{ github.ref_name }}{% endraw %}
-        run: gh release upload "$TAG" sbom.spdx.json sbom.cdx.json{% if has_generated_changelog %} CHANGELOG.md{% endif %} --clobber
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" sbom.spdx.json sbom.cdx.json[% if has_generated_changelog %] CHANGELOG.md[% endif %] --clobber

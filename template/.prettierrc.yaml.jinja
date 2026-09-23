@@ -1,11 +1,11 @@
-{#- prettier's defaults are the base. The widths are the template's, so
-    .editorconfig and the editor rulers state the same numbers. -#}
+# prettier's defaults are the base. The widths are the template's, so
+# .editorconfig and the editor rulers state the same numbers.
 proseWrap: always
-printWidth: {{ prose_width }}
+printWidth: (( prose_width ))
 overrides:
   - files: ["*.yml", "*.yaml", ".clang-*", "*.cff"]
     options:
-      printWidth: {{ data_width }}
+      printWidth: (( data_width ))
   # The VS Code files are serialised by Jinja's tojson with an indent of 2,
   # which prints as JSON.stringify does. prettier's json-stringify parser keeps
   # that whitespace, where the json parser folds a short array onto one line
@@ -13,3 +13,13 @@ overrides:
   - files: [".vscode/*.json"]
     options:
       parser: json-stringify
+  # % if is_template
+  # The template's YAML sources, formatted as the files they render: the
+  # prettier-sources hook hands prettier a .jinja path, and this names the
+  # parser for it, which prettier's overrides documentation gives as the way
+  # to format a file whose extension names no language.
+  - files: ["*.yml.jinja", "*.yaml.jinja"]
+    options:
+      parser: yaml
+      printWidth: (( data_width ))
+  # % endif

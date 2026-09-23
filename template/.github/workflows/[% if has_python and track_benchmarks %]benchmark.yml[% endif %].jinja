@@ -1,7 +1,7 @@
-{#- Rendered only when track_benchmarks is answered true, the way the sanitizer
-    workflow waits for a preset mapping. Without a benchmark in the repository
-    pytest writes an empty report and the action has nothing to compare, so an
-    unconditional file here would be a job that fails on every push. -#}
+# Rendered only when track_benchmarks is answered true, the way the sanitizer
+# workflow waits for a preset mapping. Without a benchmark in the repository
+# pytest writes an empty report and the action has nothing to compare, so an
+# unconditional file here would be a job that fails on every push.
 name: Benchmark
 
 # Only on main. The action stores each result on gh-pages and compares the new
@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: {% raw %}benchmark-${{ github.ref }}{% endraw %}
+  group: benchmark-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
         with:
           tool: pytest
           output-file-path: benchmark.json
-          github-token: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           alert-threshold: "150%"
           comment-on-alert: true

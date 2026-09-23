@@ -1,20 +1,16 @@
-{#- One cadence for every ecosystem, through a macro, so the entries cannot
-    drift apart as the pre-commit one once had. Which ecosystems follow the
-    answers. Every update carries the dependencies label, which the release
-    drafter files under its own heading. -#}
-{%- macro cadence() %}
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "Etc/UTC"
-    cooldown:
-      default-days: 7
-{%- endmacro -%}
+# Rendered by copier. One schedule and one cooldown, defined once and written
+# into every entry as JSON, which YAML reads, so the entries cannot drift
+# apart. Which ecosystems appear follows the answers in .copier-answers.yml.
+# Every update carries the dependencies label, which the release drafter
+# files under its own heading.
+# % set schedule = {"interval": "weekly", "day": "monday", "time": "06:00", "timezone": "Etc/UTC"}
+# % set cooldown = {"default-days": 7}
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"{{ cadence() }}
+    directory: "/"
+    schedule: (( schedule | tojson ))
+    cooldown: (( cooldown | tojson ))
     open-pull-requests-limit: 10
     commit-message:
       prefix: "ci"
@@ -28,7 +24,8 @@ updates:
           - "patch"
   - package-ecosystem: "pre-commit"
     directory: "/"
-{{ cadence() }}
+    schedule: (( schedule | tojson ))
+    cooldown: (( cooldown | tojson ))
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -37,10 +34,11 @@ updates:
     groups:
       pre-commit-hooks:
         patterns: ["*"]
-{%- if has_python %}
+  # % if has_python
   - package-ecosystem: "uv"
     directory: "/"
-{{ cadence() }}
+    schedule: (( schedule | tojson ))
+    cooldown: (( cooldown | tojson ))
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build"
@@ -52,11 +50,12 @@ updates:
         update-types:
           - "minor"
           - "patch"
-{%- endif %}
-{%- if has_node %}
+  # % endif
+  # % if has_node
   - package-ecosystem: "npm"
     directory: "/"
-{{ cadence() }}
+    schedule: (( schedule | tojson ))
+    cooldown: (( cooldown | tojson ))
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build"
@@ -68,4 +67,4 @@ updates:
         update-types:
           - "minor"
           - "patch"
-{%- endif %}
+  # % endif

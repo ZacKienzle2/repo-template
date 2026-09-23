@@ -12,9 +12,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "{{ package_name }}"
+name = "(( package_name ))"
 version = "0.0.0"
-requires-python = ">={{ python_version }}"
+requires-python = ">=(( python_version ))"
 
 # pyright's hook runs in an environment of its own, so the test dependencies
 # have to be ones uv syncs rather than ones passed to a one-off `uv run --with`.
@@ -87,11 +87,11 @@ dev = [
   # resolve it through.
   "tomli-w>=1.2",
 ]
-{%- if has_cog %}
+# % if has_cog
 # The cog hook runs `uv run --group docs cog`, so cog lives in the group that
 # hook names.
 docs = ["cogapp>=3"]
-{%- endif %}
+# % endif
 
 # The selection is the Scientific Python Development Guide's, which is what
 # repo-review's RF101 reads. This section was empty, so a rendered repository
@@ -218,7 +218,7 @@ timeout = "300"
 # dependencies included, so the number never answered which package lines the
 # tests reach. exclude_also drops the two lines that never execute by design.
 [tool.coverage]
-run.source = ["{{ package_name }}"]
+run.source = ["(( package_name ))"]
 report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
 
 # The pydoclint hook passes --config=pyproject.toml, and pydoclint exits with

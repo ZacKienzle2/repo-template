@@ -1,10 +1,10 @@
-{#- The test suite of a Python repository, run in the project's own
-    environment from its lock file. Ruff, mypy and the other checks are hooks
-    and run in the CI workflow, so nothing is run twice. pyright is the one hook
-    that needs this environment, so it runs here through pre-commit, at the
-    version .pre-commit-config.yaml pins, and the CI workflow skips it. A
-    repository's other Python jobs, a notebook execution or a coverage upload to
-    a service, are its own workflows beside this one. -#}
+# The test suite of a Python repository, run in the project's own
+# environment from its lock file. Ruff, mypy and the other checks are hooks
+# and run in the CI workflow, so nothing is run twice. pyright is the one hook
+# that needs this environment, so it runs here through pre-commit, at the
+# version .pre-commit-config.yaml pins, and the CI workflow skips it. A
+# repository's other Python jobs, a notebook execution or a coverage upload to
+# a service, are its own workflows beside this one.
 name: Python
 
 on:
@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: {% raw %}python-${{ github.ref }}{% endraw %}
+  group: python-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

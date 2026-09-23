@@ -1,38 +1,38 @@
-{#- Rendered for every repository that answered has_latex. latexmk runs inside
-    latex-action's full TeX Live image, so the engine, biblatex and biber come
-    from one release and agree on the control-file version, which a biber
-    installed beside a separate engine did not. pdflatex is latexmk's default
-    engine; a .latexmkrc in the repository is where that and anything else
-    latexmk reads changes, and the workflow reruns when it does. -#}
-{%- set document = latex_root | replace(".tex", "") -%}
-{%- set watched = ["**/*.tex", "**/*.bib", "**/*.cls", "**/*.sty", "**/*.bst", ".latexmkrc", ".github/workflows/latex.yml"] -%}
+# Rendered for every repository that answered has_latex. latexmk runs inside
+# latex-action's full TeX Live image, so the engine, biblatex and biber come
+# from one release and agree on the control-file version, which a biber
+# installed beside a separate engine did not. pdflatex is latexmk's default
+# engine; a .latexmkrc in the repository is where that and anything else
+# latexmk reads changes, and the workflow reruns when it does.
+# % set document = latex_root | replace(".tex", "")
+# % set watched = ["**/*.tex", "**/*.bib", "**/*.cls", "**/*.sty", "**/*.bst", ".latexmkrc", ".github/workflows/latex.yml"]
 name: LaTeX
 
 on:
   push:
     branches: [main]
     paths:
-{%- for pattern in watched %}
-      - "{{ pattern }}"
-{%- endfor %}
+      # % for pattern in watched
+      - "(( pattern ))"
+      # % endfor
   pull_request:
     branches: [main]
     paths:
-{%- for pattern in watched %}
-      - "{{ pattern }}"
-{%- endfor %}
+      # % for pattern in watched
+      - "(( pattern ))"
+      # % endfor
   workflow_dispatch: {}
 
 permissions:
   contents: read
 
 concurrency:
-  group: {% raw %}latex-${{ github.ref }}{% endraw %}
+  group: latex-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build {{ latex_root }} with TeX Live
+    name: Build (( latex_root )) with TeX Live
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -46,11 +46,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Build {{ latex_root }}
+      - name: Build (( latex_root ))
         uses: xu-cheng/latex-action@6549dc21effb2730855a1281407ecfcececc6c1b # 4.1.0
         with:
-          root_file: {{ latex_root }}
-          latexmk_shell_escape: {{ latex_shell_escape | lower }}
+          root_file: (( latex_root ))
+          latexmk_shell_escape: (( latex_shell_escape | lower ))
           # -Werror: an undefined reference or citation, or a multiply defined
           # label, fails the build (latexmk 4.69+).
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -Werror
@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: {{ document }}
-          path: {{ document }}.pdf
+          name: (( document ))
+          path: (( document )).pdf
           if-no-files-found: warn
           retention-days: 14

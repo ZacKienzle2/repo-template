@@ -1,5 +1,5 @@
-{#- Rendered from commit_types in copier.yml: the version resolver, the
-    categories and the autolabeler are three views of that one list. -#}
+# Rendered from commit_types in copier.yml: the version resolver, the
+# categories and the autolabeler are three views of that one list.
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 
@@ -9,27 +9,27 @@ version-resolver:
       - "breaking"
   minor:
     labels:
-{%- for t in commit_types if t.bump == "minor" %}
-      - "{{ t.type }}"
-{%- endfor %}
+      # % for t in commit_types if t.bump == "minor"
+      - "(( t.type ))"
+      # % endfor
   patch:
     labels:
-{%- for t in commit_types if t.bump == "patch" %}
-      - "{{ t.type }}"
-{%- endfor %}
+      # % for t in commit_types if t.bump == "patch"
+      - "(( t.type ))"
+      # % endfor
   default: patch
 
 categories:
   - title: "Breaking Changes"
     labels:
       - "breaking"
-{%- for title in commit_types | map(attribute="title") | unique %}
-  - title: "{{ title }}"
+  # % for title in commit_types | map(attribute="title") | unique
+  - title: "(( title ))"
     labels:
-{%- for t in commit_types if t.title == title %}
-      - "{{ t.type }}"
-{%- endfor %}
-{%- endfor %}
+      # % for t in commit_types if t.title == title
+      - "(( t.type ))"
+      # % endfor
+  # % endfor
   - title: "Dependencies"
     labels:
       - "dependencies"
@@ -45,11 +45,11 @@ autolabeler:
       - '/^[a-z]+(\([^)]+\))?!:/'
     body:
       - "/BREAKING[ -]CHANGE:/"
-{%- for t in commit_types %}
-  - label: "{{ t.type }}"
+  # % for t in commit_types
+  - label: "(( t.type ))"
     title:
-      - "/^{{ t.type }}(\\([^)]+\\))?!?:/"
-{%- endfor %}
+      - "/^(( t.type ))(\\([^)]+\\))?!?:/"
+  # % endfor
 
 template: |
   ## What's Changed

@@ -1,5 +1,5 @@
-{%- set repo_url = "https://github.com/" ~ github_repository -%}
-{%- set repo_name = github_repository.split("/") | last -%}
+[%- set repo_url = "https://github.com/" ~ github_repository -%]
+[%- set repo_name = github_repository.split("/") | last -%]
 # Contributing
 
 Contributions accepted: bug reports, feature requests, documentation, tests, and
@@ -50,8 +50,8 @@ privately to the maintainers via the channel in [SECURITY.md](SECURITY.md).
 ### Local Setup
 
 ```bash
-git clone {{ repo_url }}
-cd {{ repo_name }}
+git clone (( repo_url ))
+cd (( repo_name ))
 pre-commit install --install-hooks
 ```
 
@@ -129,7 +129,7 @@ Never force-push to `main` or any shared branch.
 [Conventional Commits 1.0.0][cc], checked at the commit by the commit-msg hooks:
 commitlint applies `commitlint.config.mjs`, which extends the published
 `@commitlint/config-conventional` set and narrows the header and body lines to
-{{ commit_width }} columns; a second hook refuses a byte outside ASCII; and the
+(( commit_width )) columns; a second hook refuses a byte outside ASCII; and the
 vale styles refuse a co-author trailer or a generated-with line. A rejected
 message prints the rule it broke, so none of them is repeated here.
 
@@ -197,20 +197,20 @@ Authors:
 Release notes are drafted by
 [release-drafter](https://github.com/release-drafter/release-drafter) from pull
 request labels as pull requests merge.
-{%- if has_generated_changelog %} `CHANGELOG.md` is generated from the
+[%- if has_generated_changelog %] `CHANGELOG.md` is generated from the
 Conventional Commit history by [git-cliff](https://git-cliff.org/) (configured
 in `cliff.toml`); preview the unreleased entries at any time with
 `git cliff --unreleased`.
-{%- endif %}
+[%- endif %]
 
 1. Bump the version using SemVer based on the commit history.
 2. Tag the release commit with `vMAJOR.MINOR.PATCH`.
 3. Pushing the tag runs the release workflow, which publishes the drafted
-   release with the SBOMs{% if has_generated_changelog %} and the regenerated changelog{% endif %} attached.
+   release with the SBOMs[% if has_generated_changelog %] and the regenerated changelog[% endif %] attached.
 
 ## License
 
 Contributions licensed under the project's licence.
 
 [cc]: https://www.conventionalcommits.org/en/v1.0.0/
-[issue tracker]: {{ repo_url }}/issues
+[issue tracker]: (( repo_url ))/issues

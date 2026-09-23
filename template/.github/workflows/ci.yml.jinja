@@ -1,9 +1,9 @@
-{#- The checks every repository runs on a pull request: the hooks over the
-    whole tree, a history scan for secrets and the link checker, gated by one
-    job whose name branch protection requires. Formatting, linting and schema
-    checks live in .pre-commit-config.yaml and run here through the same
-    hooks, so no check exists in two forms. Pull requests only: main is
-    merged, not pushed, and a rebase merge lands the head that was checked. -#}
+# The checks every repository runs on a pull request: the hooks over the
+# whole tree, a history scan for secrets and the link checker, gated by one
+# job whose name branch protection requires. Formatting, linting and schema
+# checks live in .pre-commit-config.yaml and run here through the same
+# hooks, so no check exists in two forms. Pull requests only: main is
+# merged, not pushed, and a rebase merge lands the head that was checked.
 name: CI
 
 on:
@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: {% raw %}ci-${{ github.ref }}{% endraw %}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -33,13 +33,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-{%- if has_python %}
+      # % if has_python
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-{%- endif %}
+      # % endif
 
       # The official action installs pre-commit and caches the hook
       # environments on the configuration's hash, which is the recipe the
@@ -48,13 +48,13 @@ jobs:
       # whole tree by the change that adds it.
       - name: Run pre-commit
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-{%- if has_python %}
+        # % if has_python
         # pyright reads the project's synced environment, which the Python
         # workflow builds, so the hook runs there and pre-commit's SKIP variable
         # leaves it out of this job.
         env:
           SKIP: pyright
-{%- endif %}
+        # % endif
 
   gitleaks:
     name: Scan for leaked secrets
@@ -80,7 +80,7 @@ jobs:
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
-          GITHUB_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   link-check:
     name: Check Markdown links
@@ -102,7 +102,7 @@ jobs:
         with:
           args: --no-progress --verbose --config lychee.toml './**/*.md'
           fail: true
-          token: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   ci-summary:
     name: CI summary gate
@@ -120,4 +120,4 @@ jobs:
       - name: Decide whether the needed jobs succeeded
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:
-          jobs: {% raw %}${{ toJSON(needs) }}{% endraw %}
+          jobs: ${{ toJSON(needs) }}
