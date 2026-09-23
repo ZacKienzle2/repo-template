@@ -7,7 +7,8 @@
 # repository produces is the gitignore_own answer, rendered at the end, so
 # nothing in this file is written by hand.
 
-# vale's StylesPath, which .vale.ini sets and the sync hook fills on every
-# repository whatever its languages; the Python and C++ blocks below name the
-# same directory, the others do not.
+# vale's StylesPath, which .vale.ini sets and the sync hook fills. vale's
+# StylesPath and Packages pages say everything `vale sync` writes is rebuilt
+# from Packages and that ignoring the whole StylesPath is simplest when none
+# of it is the project's own.
 .cache/
