@@ -13,6 +13,10 @@
 # ~
 [% filter trim %][% include "gitattributes/Python.gitattributes" %][% endfilter %]
 # % endif
+# % if has_node
+# ~
+[% filter trim %][% include "gitattributes/Web.gitattributes" %][% endfilter %]
+# % endif
 # % if gitattributes_own
 # ~
 # This repository's own, the gitattributes_own answer in .copier-answers.yml.

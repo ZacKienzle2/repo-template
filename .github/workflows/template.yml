@@ -52,6 +52,8 @@ jobs:
             answers: "--data has_python=false --data has_chezmoi=true"
           - name: snakemake
             answers: "--data has_snakemake=true --data has_import_linter=true --data has_ast_grep=true"
+          - name: node
+            answers: "--data has_python=false --data has_node=true --data vale_packages_own=[write-good]"
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1

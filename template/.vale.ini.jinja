@@ -31,19 +31,27 @@ StylesPath = .cache/vale/styles
 # install by URL, in the unpinned /releases/latest/download form the catalog
 # uses for every other entry, so a new upstream release arrives on the next
 # sync.
-Packages = proselint, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells-commits.zip, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells.zip
+# % if vale_packages_own
+#
+# The vale_packages_own answer follows, the packages only this repository
+# applies. Vale reads each package's .vale.ini before this file, in the order
+# Packages lists them, so a package carries a repository's own sections and
+# rule levels, and this file still has the last word on the keys it sets.
+# % endif
+Packages = proselint, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells-commits.zip, https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells.zip[% for package in vale_packages_own %], (( package ))[% endfor %]
 
 # The commit message file has no extension. Read as Markdown, which is what a
 # commit message is.
 [formats]
 COMMIT_EDITMSG = md
 
-# Markdown alone. Vale has no LaTeX grammar and reads .tex comments and math
-# as prose, so grammar in .tex is left to LTeX+, which parses LaTeX.
+# Markdown alone, MDX included, which Vale parses natively from v3.18.0. Vale
+# has no LaTeX grammar and reads .tex comments and math as prose, so grammar
+# in .tex is left to LTeX+, which parses LaTeX.
 # The .txt files in these repositories are verbatim third-party documents
 # rather than anyone's writing. Both are left out by not being handed to Vale
 # rather than by a list of excluded paths.
-[*.md]
+[*.{md,mdx}]
 BasedOnStyles = proselint
 # The same missing math grammar reaches Markdown. Vale reads $\tilde{V}(C)$
 # and $\eta_T(r)$ as the registered and copyright marks, and the rule has no

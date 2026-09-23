@@ -102,7 +102,59 @@ jobs:
       # workflow's token, and fails the job on a broken link.
       - name: Link checker
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+  # % if has_node
+  # ~
+  # The checks that need the project's own packages installed, which no hook
+  # environment has: the type checker, the linters that load plugins and
+  # configuration from node_modules, the build and the tests.
+  node:
+    name: Lint, type-check, build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
 
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # setup-node reads the version from package.json, which every Node
+      # repository has: volta.node, then devEngines.runtime, then engines.node.
+      # The npm cache is keyed on package-lock.json. No build cache is kept:
+      # this workflow runs on pull requests alone, and GitHub scopes a pull
+      # request's cache to its merge ref, which no other pull request can
+      # restore from.
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The conventional script names, each run with --if-present, which npm
+      # documents for a generic CI setup: a repository without one of them
+      # skips that step. The build runs before the tests, since a test may read
+      # what the build generates, and npm runs a postbuild script straight
+      # after the build, which is where a check of the build output belongs.
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Type-check
+        run: npm run typecheck --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Test
+        run: npm test --if-present
+  # % endif
+  # ~
   ci-summary:
     name: CI summary gate
     runs-on: ubuntu-latest
@@ -111,6 +163,9 @@ jobs:
       - pre-commit
       - gitleaks
       - link-check
+      # % if has_node
+      - node
+      # % endif
     if: always()
     steps:
       # re-actors/alls-green reads the needs context and fails on any failed

@@ -26,6 +26,10 @@
 # ~
 [% filter trim %][% include "gitignore/TeX.gitignore" %][% endfilter %]
 # % endif
+# % if has_node
+# ~
+[% filter trim %][% include "gitignore/Node.gitignore" %][% endfilter %]
+# % endif
 # % if has_snakemake
 # ~
 # github/gitignore has no Snakemake template. The workflow catalog's own
