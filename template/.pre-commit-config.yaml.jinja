@@ -292,26 +292,6 @@ repos:
         language: python
         additional_dependencies: ["cmakelang==0.6.13"]
         files: '(CMakeLists\.txt|\.cmake)$'
-
-  # cppcheck reads the files nothing else does: it needs no compilation
-  # database. On the manual stage, as chktex is: `pre-commit run cppcheck
-  # --hook-stage manual --all-files`.
-  - repo: https://github.com/pocc/pre-commit-hooks
-    rev: v1.4.0
-    hooks:
-      - id: cppcheck
-        stages: [manual]
-        # cppcheck's defaults hold: it reports the error severity alone, and
-        # --enable adds the rest. With style enabled it raised 86 findings on
-        # Orderbooks and 16 on Thesis, every one a false positive against the
-        # CRTP members and trivially copyable types clang-tidy already reads
-        # correctly; at its defaults both report none. The standard defaults
-        # to the latest, and the missing-include and checkers-report notices
-        # are information severity, off by default, so neither needs a flag.
-        # Two flags remain. cppcheck maps .h to C, and --language=c++ makes it
-        # parse a header as C++. --inline-suppr turns on its documented
-        # suppression comments, which are off by default.
-        args: ["--language=c++", "--inline-suppr"]
   # % endif
   # % if has_latex
   # ~

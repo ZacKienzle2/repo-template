@@ -145,8 +145,8 @@ is_public:
 has_cpp:
   type: bool
   help: >-
-    Does the repository hold C or C++ built with CMake? clang-format, cmake-format, cmake-lint and cppcheck then run as
-    hooks, and .clang-format and .cmake-format.json render with the shared widths.
+    Does the repository hold C or C++ built with CMake? clang-format, cmake-format and cmake-lint then run as hooks, and
+    .clang-format and .cmake-format.json render with the shared widths.
   default: false
 
 cpp_source_dir:
