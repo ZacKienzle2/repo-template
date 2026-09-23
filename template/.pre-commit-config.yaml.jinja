@@ -93,7 +93,7 @@ repos:
         # that makes the drift check fail on the next regeneration.
         exclude: ^CHANGELOG\.md$
         # % endif
-
+        # ~
   # The guide's answer to formatting everything that is not Python: one
   # formatter across yaml, markdown, json and the web languages, rather than a
   # rule per file type argued out by hand.
@@ -118,7 +118,7 @@ repos:
         types: [text]
         files: ^template/.*\.ya?ml\.jinja$
       # % endif
-
+      # ~
   # taplo formats TOML, which prettier does not read: pyproject, ruff, typos,
   # lychee and cliff. uv.lock is uv's own output; taplo's defaults leave lock
   # files alone even when handed the path, so nothing here says so.
@@ -144,7 +144,7 @@ repos:
         entry: \b(PyBind|Numpy|Cmake|CCache|Github|PyTest)\b
         exclude: (( caps_exclude ))
       # % if has_ast_grep
-
+      # ~
       # ast-grep matches the syntax tree, so a rule does not fire inside a
       # string or a comment and needs no regex approximating C++ or Python
       # grammar. It also needs no compilation database, so it reaches sources no
@@ -157,7 +157,7 @@ repos:
         types_or: [c++, c, cuda, python]
       # % endif
   # % if has_python and not track_benchmarks
-
+  # ~
   # A hand-written timing harness is the rule most often broken here, and it
   # was broken twice by writing a plausible file rather than by arguing with
   # the prose in verification.md. A sentence that asks is not a check that
@@ -181,7 +181,7 @@ repos:
         files: ^tests/test_benchmark_.*\.py$
   # % endif
   # % if has_python
-
+  # ~
   # The Scientific Python Development Guide, checked rather than remembered.
   # pyproject.toml's ruff selection is that guide's, and a selection copied into
   # a file is a list that drifts. This hook names every rule the guide asks for
@@ -275,7 +275,7 @@ repos:
         additional_dependencies: ["validate-pyproject-schema-store[all]"]
   # % endif
   # % if has_python and has_import_linter
-
+  # ~
   # import-linter checks the layering contract in .importlinter, whole tree,
   # since a contract is about the graph. Its own hook is language: system and
   # so needs lint-imports on PATH, which the CI runner's Python does not have;
@@ -291,7 +291,7 @@ repos:
         files: ^(.*\.py|\.importlinter)$
   # % endif
   # % if has_snakemake
-
+  # ~
   # snakefmt and snakemake --lint are the formatter and linter Molder et al.
   # give for a workflow's code quality (doi:10.12688/f1000research.29032.3,
   # section 2.2.2). snakefmt runs as its README's hook. Its default width is 88,
@@ -318,14 +318,14 @@ repos:
         stages: [manual]
   # % endif
   # % if has_notebooks
-
+  # ~
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
       - id: nbstripout
   # % endif
   # % if has_cpp
-
+  # ~
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v23.1.0
     hooks:
@@ -381,7 +381,7 @@ repos:
           ]
   # % endif
   # % if has_latex
-
+  # ~
   # tex-fmt is the LaTeX formatter. pre-commit bootstraps the rust toolchain
   # that builds it, so nothing is installed by hand, and its defaults hold:
   # two-space indentation and wrapping at 80 columns, which .editorconfig
@@ -425,7 +425,7 @@ repos:
         language: system
         files: '\.(tex|bib|cls|sty|bst|pgf)$'
   # % endif
-
+  # ~
   # Schemas rather than opinions: each of these is the published schema for the
   # file it reads, so a workflow or a Dependabot configuration that GitHub
   # would reject fails here instead.
@@ -449,7 +449,7 @@ repos:
         types: [text]
         files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
       # % endif
-
+      # ~
   # Medium and above fail a commit. The one low finding zizmor raises on these
   # repositories is self-repository, which asks for GitHub's `$/` form of a
   # same-repository action; actionlint 1.7.12 rejects that form and its two
@@ -470,7 +470,7 @@ repos:
         args: ["--min-severity=medium"]
         files: ^template/\.github/workflows/[^/]+\.ya?ml$
       # % endif
-
+      # ~
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
@@ -482,7 +482,7 @@ repos:
         types: [text]
         files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
       # % endif
-
+      # ~
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
@@ -497,7 +497,7 @@ repos:
         files: ^template/.*\.ya?ml\.jinja$
       # % endif
   # % if is_template
-
+  # ~
   # The hook source itself, read by pre-commit's own validator, which is the
   # check `pre-commit validate-config` runs on a rendered configuration.
   - repo: https://github.com/pre-commit/pre-commit
@@ -506,7 +506,7 @@ repos:
       - id: validate_config
         files: ^template/\.pre-commit-config\.yaml\.jinja$
   # % endif
-
+  # ~
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.23.2
     hooks:
@@ -529,7 +529,7 @@ repos:
         pass_filenames: false
         files: ^(docs/tooling\.md|\.pre-commit-config\.yaml|\.github/workflows/[^/]+\.yml)$
   # % if has_cog
-
+  # ~
   # Cog regenerates the Markdown sections between its markers from the files
   # they describe, and --check fails when a committed section differs from what
   # those files give now. Cog publishes no hook, and the generators import what
@@ -543,7 +543,7 @@ repos:
         language: system
         files: '\.md$'
   # % endif
-
+  # ~
   # shfmt reads .editorconfig for its indent and style when given no flags,
   # so the shell scripts follow the same file every other language does.
   - repo: https://github.com/scop/pre-commit-shfmt

@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       # % if has_generated_changelog
-
+      # ~
       - name: Regenerate the changelog
         uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         with:
@@ -53,7 +53,7 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
       # % endif
-
+      # ~
       - name: Generate SBOM (SPDX)
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:

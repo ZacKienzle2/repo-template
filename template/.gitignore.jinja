@@ -12,7 +12,7 @@
 # same directory, the others do not.
 .cache/
 # % if has_python
-
+# ~
 [% filter trim %][% include "gitignore/Python.gitignore" %][% endfilter %]
 
 # Upstream covers .hypothesis, .pytest_cache, .coverage and htmlcov. It names
@@ -35,13 +35,13 @@ session.sqlite
 .testmondata*
 # % endif
 # % if has_cpp
-
+# ~
 [% filter trim %][% include "gitignore/C++.gitignore" %][% endfilter %]
 
 [% filter trim %][% include "gitignore/CMake.gitignore" %][% endfilter %]
 # % endif
 # % if has_latex
-
+# ~
 [% filter trim %][% include "gitignore/TeX.gitignore" %][% endfilter %]
 
 # memoize externalises each memoised graphic to its own PDF and records the
@@ -53,14 +53,14 @@ session.sqlite
 *.memo.dir/
 # % endif
 # % if has_snakemake
-
+# ~
 # github/gitignore has no Snakemake template. The workflow catalog's own
 # snakemake-workflow-template publishes this block, vendored unedited under
 # snakemake-workflow-template/ in the template repository.
 [% filter trim %][% include "snakemake-workflow-template/.gitignore" %][% endfilter %]
 # % endif
 # % if gitignore_own
-
+# ~
 # This repository's own, the gitignore_own answer in .copier-answers.yml.
 # % for path in gitignore_own
 (( path ))

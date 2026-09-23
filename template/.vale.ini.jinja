@@ -50,7 +50,7 @@ BasedOnStyles = proselint
 # stops failing a commit.
 proselint.Typography = warning
 # % if has_adrs
-
+# ~
 # Architecture decision records are the one body of prose here that is written
 # now rather than inherited, so the full ai-tells set applies to them. The
 # reasoning in the Style note above is about gating whole repositories of older
@@ -83,7 +83,7 @@ BasedOnStyles = proselint
 proselint.Typography = warning
 # % endif
 # % if has_generated_changelog
-
+# ~
 # A generated CHANGELOG.md is the commit history rendered by git-cliff, and a
 # commit message is checked when it is written; a usage rule firing on a
 # subject line long after would refuse every regeneration. An empty
@@ -91,7 +91,7 @@ proselint.Typography = warning
 [CHANGELOG.md]
 BasedOnStyles =
 # % endif
-
+# ~
 # The message git hands the commit-msg hook, at both paths pre-commit passes.
 # A commit message is written at the moment it is checked, the case the Style
 # note above leaves to the stricter set, and the vale-ai-tells README layers

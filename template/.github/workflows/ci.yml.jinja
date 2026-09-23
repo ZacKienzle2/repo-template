@@ -34,13 +34,13 @@ jobs:
         with:
           persist-credentials: false
       # % if has_python
-
+      # ~
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
       # % endif
-
+      # ~
       # The official action installs pre-commit and caches the hook
       # environments on the configuration's hash, which is the recipe the
       # pre-commit documentation gives for continuous integration. Its default
@@ -55,7 +55,7 @@ jobs:
         env:
           SKIP: pyright
         # % endif
-
+        # ~
   gitleaks:
     name: Scan for leaked secrets
     runs-on: ubuntu-latest

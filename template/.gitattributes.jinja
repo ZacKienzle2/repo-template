@@ -6,15 +6,15 @@
 # answer, rendered at the end, so nothing in this file is written by hand.
 [% filter trim %][% include "gitattributes/Common.gitattributes" %][% endfilter %]
 # % if has_cpp
-
+# ~
 [% filter trim %][% include "gitattributes/C++.gitattributes" %][% endfilter %]
 # % endif
 # % if has_python
-
+# ~
 [% filter trim %][% include "gitattributes/Python.gitattributes" %][% endfilter %]
 # % endif
 # % if gitattributes_own
-
+# ~
 # This repository's own, the gitattributes_own answer in .copier-answers.yml.
 # % for rule in gitattributes_own
 (( rule ))

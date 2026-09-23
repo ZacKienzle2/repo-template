@@ -35,6 +35,12 @@ _answers_file: .copier-answers.yml
 # Environment, and the line statement under Line Statements. Copier's own
 # default is the one entry it changes from Jinja's, and a run block that
 # holds a `$((` arithmetic expansion would need a comment to escape it.
+#
+# A line statement ends at the whitespace after it, newlines included, so
+# every blank line that follows one is removed from the render. A line
+# comment ends before its newline, so a line that is the prefix alone
+# renders as an empty line: `# ~` on its own line is how a source writes
+# the blank line after `# % if` or `# % endif`.
 _envops:
   keep_trailing_newline: true
   block_start_string: "[%"
@@ -44,6 +50,7 @@ _envops:
   comment_start_string: "[#"
   comment_end_string: "#]"
   line_statement_prefix: "# %"
+  line_comment_prefix: "# ~"
 
 # Rendered once, never updated: pyproject.toml is a repository's own file,
 # but ruff.toml extends it and mypy.ini stands in for its [tool.mypy], so a
