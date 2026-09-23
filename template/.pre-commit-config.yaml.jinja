@@ -109,14 +109,14 @@ repos:
         exclude: ^CHANGELOG\.md$
         # % endif
       # % if is_template
-      # The template's YAML sources, which the Jinja delimiters keep valid
-      # YAML. The jinja override in .prettierrc.yaml names the parser, so a
-      # source is formatted as the file it renders.
+      # The template's YAML and Markdown sources: the Jinja delimiters keep a
+      # YAML source valid YAML, and the .jinja overrides in .prettierrc.yaml
+      # name each parser, so a source is formatted as the file it renders.
       - id: prettier
         alias: prettier-sources
         name: prettier on the template sources
         types: [text]
-        files: ^template/.*\.ya?ml\.jinja$
+        files: ^template/.*\.(ya?ml|md)\.jinja$
       # % endif
       # ~
   # taplo formats TOML, which prettier does not read: pyproject, ruff, typos,

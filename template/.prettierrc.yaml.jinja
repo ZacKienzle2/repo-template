@@ -13,13 +13,25 @@ overrides:
   - files: [".vscode/*.json"]
     options:
       parser: json-stringify
+  # Three documents the template writes with an answer inside a line of prose:
+  # the repository URL in CONTRIBUTING.md and SUPPORT.md, the package name in
+  # WORKFLOW.md. Reflowing at the print width would move a line break by the
+  # length of the answer, so the wrapping stays the source's.
+  - files: ["CONTRIBUTING.md", "SUPPORT.md", "WORKFLOW.md"]
+    options:
+      proseWrap: preserve
   # % if is_template
-  # The template's YAML sources, formatted as the files they render: the
-  # prettier-sources hook hands prettier a .jinja path, and this names the
+  # The template's sources, formatted as the files they render: the
+  # prettier-sources hook hands prettier a .jinja path, and these name the
   # parser for it, which prettier's overrides documentation gives as the way
-  # to format a file whose extension names no language.
+  # to format a file whose extension names no language. A Markdown source
+  # keeps its wrapping for the reason above.
   - files: ["*.yml.jinja", "*.yaml.jinja"]
     options:
       parser: yaml
       printWidth: (( data_width ))
+  - files: ["*.md.jinja"]
+    options:
+      parser: markdown
+      proseWrap: preserve
   # % endif

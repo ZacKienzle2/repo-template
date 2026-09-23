@@ -93,8 +93,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # % set changelog = " CHANGELOG.md" if has_generated_changelog else ""
       - name: Attach the SBOMs[% if has_generated_changelog %] and the changelog[% endif %]
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-        run: gh release upload "$TAG" sbom.spdx.json sbom.cdx.json[% if has_generated_changelog %] CHANGELOG.md[% endif %] --clobber
+        run: gh release upload "$TAG" --clobber sbom.spdx.json sbom.cdx.json(( changelog ))
