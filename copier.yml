@@ -72,14 +72,6 @@ _skip_if_exists:
   # file pytest reads fixtures from, and an update never touches it.
   - tests/conftest.py
 
-# docs/tooling.md is rendered with an empty Cog block and filled here, after
-# every copy and every update, from the hook configuration and the workflows
-# the same render wrote. The table is therefore never a second copy of those
-# files kept by hand, and the tooling-index hook refuses a commit that lets it
-# drift.
-_tasks:
-  - ["uvx", "--from", "cogapp", "--with", "ruamel.yaml", "cog", "-rU", "docs/tooling.md"]
-
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint, and the root is itself a render of
 # them: .copier-answers.yml at the root answers is_template true.

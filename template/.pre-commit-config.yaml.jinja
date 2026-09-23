@@ -519,24 +519,6 @@ repos:
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
-
-  # docs/tooling.md is generated from this file and the workflows by the Cog
-  # block in it, so a hook or action moved without the regeneration fails
-  # here. The generator reads both through ruamel.yaml, which keeps the
-  # version comment a pinned action carries, so cogapp and that parser run in
-  # pre-commit's own environment, and the trigger is the files the generator
-  # reads rather than the file it writes. docs/tooling.md itself states the
-  # command that regenerates it.
-  - repo: local
-    hooks:
-      - id: tooling-index
-        name: docs/tooling.md matches the hooks and workflows
-        entry: cog
-        args: ["-U", "--check", "--diff", "docs/tooling.md"]
-        language: python
-        additional_dependencies: [cogapp, ruamel.yaml]
-        pass_filenames: false
-        files: ^(docs/tooling\.md|\.pre-commit-config\.yaml|\.github/workflows/[^/]+\.yml)$
   # % if has_cog
   # ~
   # Cog regenerates the Markdown sections between its markers from the files

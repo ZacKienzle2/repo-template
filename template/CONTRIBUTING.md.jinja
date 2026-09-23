@@ -57,8 +57,9 @@ pre-commit install --install-hooks
 ```
 
 The hooks run on every commit and refuse one that fails a check; they are also
-what CI runs, so a commit that passes locally passes there. The tools they run
-are indexed in [docs/tooling.md](docs/tooling.md).
+what CI runs, so a commit that passes locally passes there.
+[.pre-commit-config.yaml](.pre-commit-config.yaml) pins each one, and
+`pre-commit run --all-files` names each one as it runs.
 
 ## How to Contribute
 
