@@ -10,6 +10,13 @@
 [type.gitignore]
 extend-glob = [".gitignore", "*.gitignore"]
 check-file = false
+
+# .gitattributes is assembled the same way from gitattributes/gitattributes,
+# whose Web block lists the four-letter Stylus extension, which typos reads as
+# a misspelt "style".
+[type.gitattributes]
+extend-glob = [".gitattributes", "*.gitattributes"]
+check-file = false
 # % if has_generated_changelog
 # ~
 # A generated CHANGELOG.md carries short commit hashes as link text, and typos

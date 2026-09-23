@@ -212,7 +212,11 @@ has_notebooks:
 
 has_node:
   type: bool
-  help: Does the repository hold JavaScript or TypeScript? Dependabot then moves its npm packages.
+  help: >-
+    Does the repository hold JavaScript or TypeScript? Dependabot then moves its npm packages, .gitignore and
+    .gitattributes take github/gitignore's Node and gitattributes' Web blocks, prettier chooses the files it formats
+    itself, TypeScript included, and ci.yml gains a job that installs the packages and runs the lint, typecheck, build
+    and test scripts the repository defines.
   default: false
 
 has_chezmoi:
@@ -246,6 +250,18 @@ precommit_exclude_own:
     joined into the top-level exclude of .pre-commit-config.yaml. Third-party sources kept verbatim are the case: a
     formatter rewrites them and a linter reports style their authors chose. The expression is read in verbose mode, so a
     literal space or # is escaped.
+  default: []
+
+vale_packages_own:
+  type: yaml
+  help: >-
+    Vale packages only this repository applies, as a YAML list appended to Packages in .vale.ini: a name from Vale's
+    package library, a URL to a .zip, or a path from the root to a directory laid out as a package (vale/website). Vale
+    reads each package's .vale.ini before the rendered file, so a directory package is where a repository keeps its own
+    sections and rule levels, and it can list further packages, such as Google or write-good, for its prose alone. Vale
+    applies the sections matching a file in the order it first read them, so a package whose section narrows the
+    rendered one, [content/**/*.mdx] under [*.{md,mdx}], declares [*.{md,mdx}] first; otherwise the rendered section is
+    read last and its BasedOnStyles replaces the package's.
   default: []
 
 has_ast_grep:
