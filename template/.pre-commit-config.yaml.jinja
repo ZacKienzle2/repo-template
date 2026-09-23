@@ -435,9 +435,11 @@ repos:
       - id: check-dependabot
       - id: check-github-workflows
       # % if is_template
-      # The workflow sources, read as the workflows they render. The
-      # Dependabot source is left out: its cadence is one Jinja value the four
-      # ecosystems share, which the schema reads as a string until rendered.
+      # The workflow sources, read as the workflows they render: the .jinja
+      # ones and the ones copied verbatim, which the hook above misses since
+      # its pattern anchors at .github/workflows. The Dependabot source is
+      # left out: its cadence is one Jinja value the four ecosystems share,
+      # which the schema reads as a string until rendered.
       - id: check-github-workflows
         alias: check-github-workflows-sources
         name: Validate the workflow sources
@@ -445,7 +447,7 @@ repos:
         # back to JSON; the option names YAML for a .jinja path.
         args: ["--default-filetype", "yaml"]
         types: [text]
-        files: ^template/\.github/workflows/.*\.jinja$
+        files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
       # % endif
 
   # Medium and above fail a commit. The one low finding zizmor raises on these
@@ -458,6 +460,16 @@ repos:
     hooks:
       - id: zizmor
         args: ["--min-severity=medium"]
+      # % if is_template
+      # zizmor reads a .yml path wherever it is and refuses any other suffix
+      # as invalid input, so the sources it reads are the workflows copied
+      # verbatim; a .jinja workflow is read by actionlint and the schema.
+      - id: zizmor
+        alias: zizmor-sources
+        name: zizmor on the workflow sources
+        args: ["--min-severity=medium"]
+        files: ^template/\.github/workflows/[^/]+\.ya?ml$
+      # % endif
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
@@ -468,7 +480,7 @@ repos:
         alias: actionlint-sources
         name: actionlint on the workflow sources
         types: [text]
-        files: ^template/\.github/workflows/.*\.jinja$
+        files: ^template/\.github/workflows/[^/]+\.ya?ml(\.jinja)?$
       # % endif
 
   - repo: https://github.com/adrienverge/yamllint
