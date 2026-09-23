@@ -70,7 +70,7 @@ jobs:
       # which is how zizmor's github-env audit says to pass state between steps.
       - name: Install the compiler and libraries
         id: setup
-        uses: ./.github/actions/setup-cpp
+        uses: ./.github/actions/setup-cpp # zizmor: ignore[self-repository] actionlint 1.7.12 rejects the $/ form (rhysd/actionlint#711, #732)
         with:
           compiler: ${{ matrix.compiler }}
           ccache-key: sanitizers-${{ matrix.preset }}
