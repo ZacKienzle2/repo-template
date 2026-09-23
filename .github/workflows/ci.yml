@@ -1,9 +1,13 @@
+# The checks every repository runs on a pull request: the hooks over the
+# whole tree, a history scan for secrets and the link checker, gated by one
+# job whose name branch protection requires. Formatting, linting and schema
+# checks live in .pre-commit-config.yaml and run here through the same
+# hooks, so no check exists in two forms. Pull requests only: main is
+# merged, not pushed, and a rebase merge lands the head that was checked.
 name: CI
 
 on:
   pull_request:
-    branches: [main]
-  push:
     branches: [main]
   workflow_dispatch: {}
 
@@ -11,77 +15,94 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   pre-commit:
-    name: Run the template's own hooks
+    name: Run pre-commit hooks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-
+      # The official action installs pre-commit and caches the hook
+      # environments on the configuration's hash, which is the recipe the
+      # pre-commit documentation gives for continuous integration. Its default
+      # is --all-files, so a hook added to the configuration is applied to the
+      # whole tree by the change that adds it.
       - name: Run pre-commit
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
 
-  generated:
-    name: Generate and check against the guide
+  gitleaks:
+    name: Scan for leaked secrets
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: python
-            answers: "--data has_python=true --data has_cpp=false"
-          - name: cpp
-            answers: "--data has_python=false --data has_cpp=true"
-          - name: notebooks
-            answers: "--data has_notebooks=true --data has_generated_changelog=true"
-          - name: latex
-            answers: "--data has_latex=true --data precommit_exclude_own=[vendor/.*]"
+    timeout-minutes: 10
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The scan walks history, which needs all of it.
+          fetch-depth: 0
+
+      # The pre-commit hook scans what is staged, which is the right scan
+      # while committing and finds nothing on a runner. This scans the
+      # repository's history. The official action needs a licence key for
+      # organisation accounts only.
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  link-check:
+    name: Check Markdown links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@05273c154d09957eb9a2377d9c988fbda431d1c5 # v6.4.0
+      # The action's defaults are the whole configuration: it reads lychee.toml,
+      # checks the Markdown, HTML and reStructuredText files quietly with the
+      # workflow's token, and fails the job on a broken link.
+      - name: Link checker
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
 
-      # A template that generates an invalid configuration is worse than none,
-      # so each answer set is rendered and the result is put to the tools it
-      # configures rather than read.
-      - name: Generate a project
-        run: |
-          mkdir -p /tmp/generated
-          cd /tmp/generated
-          git init -q
-          uvx copier copy --trust --defaults --data "github_repository=${GITHUB_REPOSITORY}" ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
-
-      - name: Validate the generated hooks
-        run: uvx pre-commit validate-config /tmp/generated/.pre-commit-config.yaml
-
-      # sp-repo-review implements the Scientific Python Development Guide the
-      # hook selection follows, so the guide checks its own advice.
-      - name: Check against the Scientific Python Development Guide
-        run: uvx --from 'sp-repo-review[cli]' repo-review /tmp/generated || true
+  ci-summary:
+    name: CI summary gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs:
+      - pre-commit
+      - gitleaks
+      - link-check
+    if: always()
+    steps:
+      # re-actors/alls-green reads the needs context and fails on any failed
+      # or cancelled job, so branch protection requires this one name rather
+      # than every job above.
+      - name: Decide whether the needed jobs succeeded
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}

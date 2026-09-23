@@ -1,27 +1,22 @@
-{#- Assembled from the published gitattributes collection at
-    github.com/gitattributes/gitattributes. The three files under
-    gitattributes/ in the template repository are upstream's, unedited, and
-    refreshing one is fetching the same path from upstream again. Which
-    ones apply follows the same answers as the rest of the template. Rules
-    a repository needs beyond these, such as Git LFS filters for files at the
-    root, are the gitattributes_own answer, rendered after the assembled
-    blocks, so nothing in this file is written by hand. -#}
-# Assembled by copier from github.com/gitattributes/gitattributes; the source
-# files are in the template repository, not here. A rule of this repository's
-# own is the gitattributes_own answer in .copier-answers.yml, rendered at the end.
-{% filter trim %}{% include "gitattributes/Common.gitattributes" %}{% endfilter %}
-{%- if has_cpp %}
-
-{% filter trim %}{% include "gitattributes/C++.gitattributes" %}{% endfilter %}
-{%- endif %}
-{%- if has_python %}
-
-{% filter trim %}{% include "gitattributes/Python.gitattributes" %}{% endfilter %}
-{%- endif %}
-{%- if gitattributes_own %}
-
+# Assembled by copier from github.com/gitattributes/gitattributes, the
+# published collection. The template repository keeps upstream's files
+# unedited, fetched by vendir at the commit its vendir.lock.yml records, and
+# which of them apply follows the answers in .copier-answers.yml. A rule of
+# this repository's own, such as a Git LFS filter, is the gitattributes_own
+# answer, rendered at the end, so nothing in this file is written by hand.
+[% filter trim %][% include "gitattributes/Common.gitattributes" %][% endfilter %]
+# % if has_cpp
+# ~
+[% filter trim %][% include "gitattributes/C++.gitattributes" %][% endfilter %]
+# % endif
+# % if has_python
+# ~
+[% filter trim %][% include "gitattributes/Python.gitattributes" %][% endfilter %]
+# % endif
+# % if gitattributes_own
+# ~
 # This repository's own, the gitattributes_own answer in .copier-answers.yml.
-{%- for rule in gitattributes_own %}
-{{ rule }}
-{%- endfor %}
-{%- endif %}
+# % for rule in gitattributes_own
+(( rule ))
+# % endfor
+# % endif
