@@ -496,16 +496,18 @@ repos:
         files: ^template/\.github/workflows/[^/]+\.ya?ml([^./]*\.jinja)?$
       # % endif
       # ~
+  # yamllint finds .yamllint.yaml in the working directory by itself, ahead
+  # of a YAMLLINT_CONFIG_FILE in the environment, so the hooks name no file.
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
       - id: yamllint
-        args: ["--strict", "--config-file=.yamllint.yaml"]
+        args: ["--strict"]
       # % if is_template
       - id: yamllint
         alias: yamllint-sources
         name: yamllint on the template sources
-        args: ["--strict", "--config-file=.yamllint.yaml"]
+        args: ["--strict"]
         types: [text]
         files: ^template/.*\.ya?ml[^./]*\.jinja$
       # % endif
