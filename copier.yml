@@ -224,7 +224,7 @@ has_cog:
 # width was 72 in CONTRIBUTING.md and VS Code but 100 in commitlint.
 indent_width:
   type: int
-  help: Indentation for code; .editorconfig, clang-format and VS Code read it.
+  help: Indentation for code; .editorconfig and clang-format read it, and the editor takes it from .editorconfig.
   default: 4
   when: false
 
