@@ -36,6 +36,17 @@ _skip_if_exists:
   - pyproject.toml
   - README.md
   - "src/{{ package_name }}/__init__.py"
+  # A tests directory is the repository's own once it holds a test; the stub
+  # gives a fresh repository the folder repo-review's PY005 asks for and the
+  # file pytest reads fixtures from, and an update never touches it.
+  - tests/conftest.py
+
+# docs/tooling.md is rendered with an empty Cog block and filled here, after
+# every copy and every update, from the hook configuration and the workflows
+# the same render wrote. The table is therefore never a second copy of those
+# files kept by hand, and the cog hook refuses a commit that lets it drift.
+_tasks:
+  - ["uvx", "cogapp", "-r", "docs/tooling.md"]
 
 # The template's sources live here, so the repository root is an ordinary
 # project that its own hooks can lint. Without the split, yamllint and the

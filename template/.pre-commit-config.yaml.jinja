@@ -457,6 +457,21 @@ repos:
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
+
+  # docs/tooling.md is generated from this file and the workflows by the Cog
+  # block in it, so a hook or action moved without the regeneration fails
+  # here. The generator imports the standard library alone, so cogapp runs in
+  # pre-commit's own environment, and the trigger is the files it reads rather
+  # than the file it writes. `uvx cogapp -r docs/tooling.md` regenerates.
+  - repo: local
+    hooks:
+      - id: tooling-index
+        name: docs/tooling.md matches the hooks and workflows
+        entry: cog --check --diff --check-fail-msg="run uvx cogapp -r docs/tooling.md" docs/tooling.md
+        language: python
+        additional_dependencies: [cogapp]
+        pass_filenames: false
+        files: ^(docs/tooling\.md|\.pre-commit-config\.yaml|\.github/workflows/[^/]+\.yml)$
 {%- if has_cog %}
 
   # Cog regenerates the Markdown sections between its markers from the files
