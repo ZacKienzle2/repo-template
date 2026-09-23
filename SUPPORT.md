@@ -36,7 +36,8 @@ reproducibility.
 - [CONTRIBUTING](CONTRIBUTING.md) - contribution workflow
 - [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) - community standards
 - [SECURITY](SECURITY.md) - vulnerability disclosure
-- [docs/tooling.md](docs/tooling.md) - every check the repository runs
+- [.pre-commit-config.yaml](.pre-commit-config.yaml) - every check the
+  repository runs, at the version it is pinned to
 
 [bug report template]: https://github.com/ZacKienzle2/repo-template/issues/new?template=bug_report.yml
 [existing issues]: https://github.com/ZacKienzle2/repo-template/issues?q=is%3Aissue
