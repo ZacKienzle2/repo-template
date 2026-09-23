@@ -169,7 +169,9 @@ repos:
     hooks:
       - id: no-benchmark-harness
         name: benchmark harnesses are not written by hand
-        entry: >-
+        # A literal block: prettier reflows a folded one to its own width and
+        # rewrote this file on the first commit of every rendered repository.
+        entry: |-
           A pyperf timeit line answers this without a file. See the benchmark
           section of verification.md. Answer track_benchmarks true if the
           number has to be rechecked in CI.

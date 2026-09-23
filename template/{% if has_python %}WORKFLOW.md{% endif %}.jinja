@@ -2,13 +2,14 @@
 
 The tooling does the checking, so none of it is a judgement call. Every command
 below is rendered from the template, so a repository describes the work in one
-place rather than in a paragraph each repository rewrites.
+place rather than in a paragraph each repository rewrites. `<package>` stands
+for `{{ package_name }}` throughout.
 
 | Step                                   | Command                                                                                                                        |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Write the obvious solution             | `src/{{ package_name }}/<module>.py`                                                                                           |
-| Keep it when you rewrite               | move it to `src/{{ package_name }}/baselines.py`                                                                               |
-| Generate the test                      | `nox -s generate -- {{ package_name }}.baselines.<old> {{ package_name }}.<module>.<new>`                                       |
+| Write the obvious solution             | `src/<package>/<module>.py`                                                                                                    |
+| Keep it when you rewrite               | move it to `src/<package>/baselines.py`                                                                                        |
+| Generate the test                      | `nox -s generate -- <package>.baselines.<old> <package>.<module>.<new>`                                                        |
 | Narrow the generated strategy          | the annotations do not carry the problem's bounds                                                                              |
 | Run everything                         | `nox`                                                                                                                          |
 | Re-run only what a change affects      | `nox -s fast`                                                                                                                  |
