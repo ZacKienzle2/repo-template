@@ -131,7 +131,7 @@ has_cpp:
   type: bool
   help: >-
     Does the repository hold C or C++ built with CMake? clang-format, cmake-format, cmake-lint and cppcheck then run as
-    hooks, .clang-format and .cmake-format.json render with the shared widths, and CodeQL analyses C and C++.
+    hooks, and .clang-format and .cmake-format.json render with the shared widths.
   default: false
 
 cpp_source_dir:
@@ -211,7 +211,7 @@ has_notebooks:
 
 has_node:
   type: bool
-  help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and Dependabot moves its packages.
+  help: Does the repository hold JavaScript or TypeScript? Dependabot then moves its npm packages.
   default: false
 
 has_chezmoi:
