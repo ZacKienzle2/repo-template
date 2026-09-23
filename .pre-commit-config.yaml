@@ -20,6 +20,7 @@ exclude: |
     |gitattributes/.*
     |gitignore/.*
     |snakemake-workflow-template/.*
+    |vendir\.lock\.yml
   )$
 
 # pre-commit install puts in only the pre-commit stage unless told otherwise,
@@ -53,7 +54,7 @@ repos:
       - id: mixed-line-ending
         args: ["--fix=lf"]
       - id: trailing-whitespace
-        args: ["--markdown-linebreak-ext=md"]
+        args: ["--markdown-linebreak-ext=md,mdx"]
       - id: end-of-file-fixer
 
   # The guide's answer to formatting everything that is not Python: one
@@ -190,10 +191,18 @@ repos:
 
   # .editorconfig is read by every editor and by prettier; this is the check
   # that the tree agrees with it, which three repositories carried by hand.
+  # max_line_length is set in .editorconfig only for prettier to read, and
+  # prettier's options documentation calls its print width a target rather
+  # than a limit: a string literal or a TeX label longer than the width stays
+  # on one line. The checker reads the same key as a hard limit, and on the
+  # first Node repository it reported 156 such lines after prettier had run,
+  # each fixable only by an inline disable comment, so its line-length check
+  # is switched off.
   - repo: https://github.com/editorconfig-checker/editorconfig-checker
     rev: v4.0.1
     hooks:
       - id: editorconfig-checker
+        args: ["-disable-max-line-length"]
 
   # Overriding args drops the upstream --write-changes. A spell checker has no
   # notion of syntax, and left to rewrite files it edits identifiers and
@@ -263,9 +272,11 @@ repos:
         name: vale sync
         args: [--config=.vale.ini, sync]
         pass_filenames: false
+      # Vale parses MDX natively from v3.18.0, JSX children included from
+      # v3.19.0, so MDX is prose here with no package to read it.
       - id: vale
         args: [--config=.vale.ini, --no-global, --minAlertLevel=error, --output=line]
-        types_or: [markdown]
+        types_or: [markdown, mdx]
       # The commit message, at the stage git hands it over. .vale.ini reads
       # the message file as Markdown and layers ai-tells and ai-tells-commits
       # on it, as the vale-ai-tells README does. Among what they catch are the

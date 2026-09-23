@@ -11,6 +11,13 @@
 extend-glob = [".gitignore", "*.gitignore"]
 check-file = false
 
+# .gitattributes is assembled the same way from gitattributes/gitattributes,
+# whose Web block lists the four-letter Stylus extension, which typos reads as
+# a misspelt "style".
+[type.gitattributes]
+extend-glob = [".gitattributes", "*.gitattributes"]
+check-file = false
+
 # The label patterns in template/_typos.toml.jinja name LaTeX theorem
 # environments, and thm is one of those names rather than a misspelling.
 [default.extend-words]

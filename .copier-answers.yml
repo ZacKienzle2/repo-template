@@ -23,3 +23,5 @@ precommit_exclude_own:
 - gitattributes/.*
 - gitignore/.*
 - snakemake-workflow-template/.*
+- vendir\.lock\.yml
+vale_packages_own: []

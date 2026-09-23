@@ -16,9 +16,12 @@
  * the limit is the template's commit_width rather than a second number.
  *
  * An ES module because wagoid/commitlint-github-action, which runs this in
- * CI, loads .mjs and documents that .js and .cjs are not read.
+ * CI, loads .mjs and documents that .js and .cjs are not read. The object is
+ * named before it is exported, the form commitlint's own configuration guide
+ * shows, which eslint-plugin-import's no-anonymous-default-export also asks
+ * for, so a Node repository's linter reads this file without an exception.
  */
-export default {
+const Configuration = {
   extends: ["@commitlint/config-conventional"],
   // Skip machine-generated dependency-bump commits. Dependabot keeps a
   // conventional subject but appends release notes whose lines exceed the body
@@ -26,10 +29,7 @@ export default {
   // predicate matches only the deps scope with a bump or update verb, so an
   // ordinary commit is still linted, and the flag covers the capitalised
   // subject Dependabot writes for a grouped update.
-  ignores: [
-    (message) =>
-      /^(build|ci|chore)\(deps(-dev)?\): (bump|update) /i.test(message),
-  ],
+  ignores: [(message) => /^(build|ci|chore)\(deps(-dev)?\): (bump|update) /i.test(message)],
   rules: {
     "body-leading-blank": [2, "always"],
     "footer-leading-blank": [2, "always"],
@@ -37,3 +37,5 @@ export default {
     "body-max-line-length": [2, "always", 72],
   },
 };
+
+export default Configuration;
