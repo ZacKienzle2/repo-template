@@ -134,6 +134,16 @@ is_template:
     the sources. Every other repository answers false.
   default: false
 
+is_public:
+  type: bool
+  help: >-
+    Is the repository public? GitHub Actions is free on standard runners for a public repository and draws on the
+    account's monthly quota for a private one, where a run that finds the quota spent is refused and reports as a
+    failure. A private repository renders the pre-commit job in ci.yml alone, and the same hooks run at every local
+    commit. Every other workflow, and the label, release-drafter and auto-assign configuration they read, renders for a
+    public repository only.
+  default: false
+
 has_cpp:
   type: bool
   help: >-
