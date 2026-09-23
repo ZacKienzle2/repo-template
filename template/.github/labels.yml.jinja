@@ -1,8 +1,12 @@
 {#- Rendered from commit_types in copier.yml plus the labels the workflows
-    and the labeler name. GitHub's own defaults (bug, enhancement,
-    documentation, question and the rest) exist on every repository and are
-    left alone; the size and stale labels are created by the actions that
-    apply them; labels-sync no longer deletes what this file does not list. -#}
+    name. GitHub's own defaults (bug, enhancement, documentation, question and
+    the rest) exist on every repository and are left alone; the stale label is
+    created by the action that applies it; labels-sync does not delete what
+    this file does not list. The release drafter's autolabeler applies a type
+    label from the pull request title, and that one label is what files the
+    pull request under a heading: a labeler that added docs, ci and
+    dependencies from the changed paths put one pull request under three
+    headings of the same draft. -#}
 # Rendered by copier from the commit types in copier.yml, which the release
 # drafter and its autolabeler read as well.
 {%- for t in commit_types %}
@@ -19,9 +23,6 @@
 - name: "security"
   color: "ee0701"
   description: "Security-related"
-- name: "github-config"
-  color: "0366d6"
-  description: "Repository configuration under .github/"
 - name: "skip-changelog"
   color: "ededed"
   description: "Left out of the release notes"
@@ -34,25 +35,3 @@
 - name: "work-in-progress"
   color: "fbca04"
   description: "Not ready for review; exempt from the stale bot"
-{#- Language labels follow the answers; the colours are linguist's for each
-    language, which is what GitHub paints the repository's language bar with. -#}
-{%- if has_cpp %}
-- name: "cpp"
-  color: "f34b7d"
-  description: "C++ sources and the CMake build"
-{%- endif %}
-{%- if has_python %}
-- name: "python"
-  color: "3572a5"
-  description: "Python sources"
-{%- endif %}
-{%- if has_node %}
-- name: "javascript"
-  color: "f1e05a"
-  description: "JavaScript and TypeScript sources"
-{%- endif %}
-{%- if has_latex %}
-- name: "latex"
-  color: "3d6117"
-  description: "LaTeX sources"
-{%- endif %}

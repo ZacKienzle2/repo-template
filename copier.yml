@@ -158,7 +158,7 @@ has_notebooks:
 
 has_node:
   type: bool
-  help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and the labeler marks it.
+  help: Does the repository hold JavaScript or TypeScript? CodeQL analyses it and Dependabot moves its packages.
   default: false
 
 has_chezmoi:
