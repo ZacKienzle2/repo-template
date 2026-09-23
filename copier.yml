@@ -86,6 +86,13 @@ _message_after_update: |
   conflict in the file, with git's own markers and the file unmerged in the
   index, which is copier's default and what `git status` reports as UU.
 
+  This render answered is_public [% if is_public %]true[% else %]false, so
+  every workflow but ci.yml, and the label, release-drafter and auto-assign
+  configuration they read, is absent[% endif %]. A question added since a
+  repository was first rendered has no recorded answer, so --defaults takes
+  the default for it, and the default here is false. Check `git status` for
+  deletions before committing an update.
+
 github_repository:
   type: str
   help: >-
@@ -188,6 +195,16 @@ track_benchmarks:
   default: false
   when: "(( has_python ))"
 
+python_source_dir:
+  type: str
+  help: >-
+    Which directory holds the Python this repository mutates and measures? mutation.toml names it as cosmic-ray's
+    module-path and the noxfile searches it for the module a mutants session is given. src is the layout this template
+    renders; a repository whose Python is a harness beside a larger project, under scripts/ or tools/, names that
+    instead, so the mutation config does not point at a tree with no Python in it.
+  default: src
+  when: "(( has_python ))"
+
 mypy_overrides:
   type: yaml
   help: >-
@@ -263,6 +280,17 @@ vale_packages_own:
     rendered one, [content/**/*.mdx] under [*.{md,mdx}], declares [*.{md,mdx}] first; otherwise the rendered section is
     read last and its BasedOnStyles replaces the package's.
   default: []
+
+typos_words:
+  type: yaml
+  help: >-
+    Words typos reports that are correct in this repository, as a YAML mapping of the word to what it corrects to, which
+    is itself ("qty: qty"), rendered one entry to a line under [default.extend-words] of _typos.toml. A domain
+    abbreviation is the case, and so is a name from a library's API that reads as a misspelling of an English word.
+    Without this answer the vocabulary is an edit to a file the template owns, and it conflicts on every update that
+    touches the same end of that file. A mapping rather than a list of patterns, because taplo reflows an array by its
+    width and a rendered array would then match the formatter only at some lengths.
+  default: {}
 
 has_ast_grep:
   type: bool

@@ -235,6 +235,15 @@ timeout = "300"
 run.source = ["(( package_name ))"]
 report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
 
+# noxfile.py is the template's and imports nox and tomli-w, which the block
+# above declares in the dev group because that is the environment the sessions
+# run from. deptry reads that as a run-time import of a development dependency
+# and reports DEP004, so `uv run deptry .` in python.yml failed on a freshly
+# rendered repository before this. The template repository does not render a
+# pyproject of its own, which is why its own checks never saw it.
+[tool.deptry.per_rule_ignores]
+DEP004 = ["nox", "tomli_w"]
+
 # The pydoclint hook passes --config=pyproject.toml, and pydoclint exits with
 # an error when the file has no section of its own, so a repository without
 # this block fails that hook on its first commit. The style matches the
