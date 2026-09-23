@@ -1,0 +1,94 @@
+# The template's own check: each answer set is rendered and the result is
+# put to the tools it configures. A template that generates an invalid
+# configuration is worse than none, so the rendered repository runs its own
+# hooks over its own tree, which is where actionlint, zizmor, the workflow
+# schema, yamllint, prettier and sp-repo-review report, and a hook that fails
+# or a formatter that rewrites a freshly rendered file fails the job. This
+# used to be `pre-commit validate-config` and a repo-review whose exit code
+# was discarded, and the guide's checks had failed on every render for as
+# long as the file said `|| true`. The hooks over the template's own tree,
+# the sources included, run in ci.yml, which the template renders for itself.
+name: Template
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: template-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    name: Render ${{ matrix.name }} and run its hooks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # cpp_sanitizer_presets is left empty: the workflow it renders uses a
+        # composite action the repository supplies, which actionlint would
+        # report absent from a fresh render.
+        include:
+          - name: python
+            answers: "--data has_python=true"
+          - name: cpp
+            answers: "--data has_python=false --data has_cpp=true"
+          - name: cpp-python
+            answers: "--data has_python=true --data has_cpp=true"
+          - name: notebooks
+            answers: "--data has_notebooks=true --data has_generated_changelog=true --data track_benchmarks=true"
+          - name: latex
+            answers: "--data has_python=false --data has_latex=true --data precommit_exclude_own=[vendor/.*]"
+          - name: latex-cog
+            answers: "--data has_latex=true --data has_cog=true --data has_adrs=true"
+          - name: chezmoi
+            answers: "--data has_python=false --data has_chezmoi=true"
+          - name: snakemake
+            answers: "--data has_snakemake=true --data has_import_linter=true --data has_ast_grep=true"
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      # The render is committed so the hooks see a tree, and a LICENSE is
+      # touched because the template renders none: which licence a repository
+      # takes is its own decision, and repo-review's PY003 is what says one
+      # is missing.
+      - name: Render the answer set
+        run: |
+          mkdir -p /tmp/generated
+          cd /tmp/generated
+          git init -q
+          uvx copier copy --trust --defaults --data "github_repository=${GITHUB_REPOSITORY}" ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
+          touch LICENSE
+          git add -A
+
+      # pyright reads the environment the Python workflow syncs, ast-grep is
+      # a binary the repository installs, and import-linter reads a contract
+      # the repository writes; each is skipped here and nowhere else.
+      - name: Run the rendered repository's hooks over its own tree
+        working-directory: /tmp/generated
+        env:
+          SKIP: pyright,ast-grep,import-linter
+        run: uvx pre-commit run --all-files
