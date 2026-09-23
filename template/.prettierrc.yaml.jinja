@@ -1,8 +1,18 @@
 # prettier's defaults are the base. The widths are the template's, so
 # .editorconfig and the editor rulers state the same numbers.
+#
+# prettier reads max_line_length from .editorconfig and lets this file
+# override it, which its configuration documentation states, so a top-level
+# printWidth here replaced the width .editorconfig gives JavaScript,
+# TypeScript and CSS: prettier.resolveConfig answered 80 for a .ts file that
+# .editorconfig set to 120. The prose width is therefore set for Markdown
+# alone, and every other language takes its width from .editorconfig or from
+# prettier's default.
 proseWrap: always
-printWidth: (( prose_width ))
 overrides:
+  - files: ["*.md", "*.mdx"]
+    options:
+      printWidth: (( prose_width ))
   - files: ["*.yml", "*.yaml", ".clang-*", "*.cff"]
     options:
       printWidth: (( data_width ))
