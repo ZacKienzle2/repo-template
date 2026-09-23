@@ -50,7 +50,9 @@ jobs:
         uses: xu-cheng/latex-action@6549dc21effb2730855a1281407ecfcececc6c1b # 4.1.0
         with:
           root_file: (( latex_root ))
-          latexmk_shell_escape: (( latex_shell_escape | lower ))
+          # % if latex_shell_escape
+          latexmk_shell_escape: true
+          # % endif
           # -Werror: an undefined reference or citation, or a multiply defined
           # label, fails the build (latexmk 4.69+).
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -Werror
@@ -64,5 +66,4 @@ jobs:
         with:
           name: (( document.split("/") | last ))
           path: (( document )).pdf
-          if-no-files-found: warn
           retention-days: 14

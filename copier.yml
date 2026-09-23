@@ -252,6 +252,15 @@ precommit_exclude_own:
     literal space or # is escaped.
   default: []
 
+typos_words_own:
+  type: yaml
+  help: >-
+    Words only this repository uses that typos reads as misspellings, as a YAML list ([thm]), rendered under
+    [default.extend-words] in _typos.toml and each accepted as it is spelled. Nine of the ten repositories rendered from
+    this template had added such a table by hand after the rendered block, which copier update then had to carry
+    forward.
+  default: []
+
 vale_packages_own:
   type: yaml
   help: >-

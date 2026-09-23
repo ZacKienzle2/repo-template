@@ -80,7 +80,7 @@ jobs:
           mkdir -p /tmp/generated
           cd /tmp/generated
           git init -q
-          uvx copier copy --trust --defaults --data "github_repository=${GITHUB_REPOSITORY}" ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
+          uvx copier copy --trust --defaults --vcs-ref=HEAD --data "github_repository=${GITHUB_REPOSITORY}" ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
           touch LICENSE
           git add -A
 
@@ -117,9 +117,11 @@ jobs:
       # to a source that was not rendered into the root, or a hand edit to a
       # rendered file, is then a difference in the tree. The answers file
       # records the commit it was rendered from, which moves with every
-      # commit, so it is left out of the comparison.
+      # commit, so it is left out of the comparison. Without --vcs-ref copier
+      # renders the latest tag, and HEAD here only because the shallow
+      # checkout fetches no tags; the render job's copy says HEAD as well.
       - name: Render the root again from its answers
-        run: uvx copier recopy --trust --force --quiet
+        run: uvx copier recopy --trust --force --quiet --vcs-ref=HEAD
 
       - name: Compare the render with the committed root
         run: |
@@ -147,6 +149,5 @@ jobs:
       - name: Check the pins and their version comments
         uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
         with:
-          config: .pinact.yaml
           fix: "false"
           verify: "true"

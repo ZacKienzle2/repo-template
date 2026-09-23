@@ -45,18 +45,13 @@ footer = """
   {% endif -%}
 {% endfor %}
 """
-trim = true
 
+# git-cliff loads its built-in configuration first and this file over it, so
+# only the keys that differ from the built-in values are set here.
 [git]
-conventional_commits = true
 filter_unconventional = false
-split_commits = false
 protect_breaking_commits = true
-filter_commits = false
 tag_pattern = "v[0-9].*"
-skip_tags = ""
-ignore_tags = ""
-topo_order = false
 sort_commits = "newest"
 
 commit_parsers = [

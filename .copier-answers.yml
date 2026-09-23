@@ -1,6 +1,6 @@
 # Written by copier. Do not edit by hand: `copier update` rewrites it, and a
 # hand-edited answer is the drift this template exists to remove.
-_commit: v1.1.0-1-ge0e9398
+_commit: v1.2.0-15-g4740a15
 _src_path: .
 gitattributes_own:
 - '* text=auto eol=lf'
@@ -24,4 +24,6 @@ precommit_exclude_own:
 - gitignore/.*
 - snakemake-workflow-template/.*
 - vendir\.lock\.yml
+typos_words_own:
+- thm
 vale_packages_own: []
