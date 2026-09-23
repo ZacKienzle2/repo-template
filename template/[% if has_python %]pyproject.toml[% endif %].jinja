@@ -1,7 +1,8 @@
-# Rendered by copier once (_skip_if_exists) for a repository that had no
-# pyproject.toml; a repository's own is never touched by an update. ruff.toml
-# extends this file, so its [tool.ruff] is the rule selection, and the pytest
-# settings are the Scientific Python Development Guide's.
+# Managed by copier from ZacKienzle2/repo-template. copier update re-renders the
+# previous template version, takes the repository's own edits as the diff
+# against it, and applies them over the new version, so a dependency uv adds
+# or a per-file ignore a repository writes survives each update. The ruff,
+# mypy and pytest settings are the Scientific Python Development Guide's.
 # repo-review's PP002 asks for a build backend, and without one the code is
 # importable only through pytest's pythonpath and pyright's extraPaths, two
 # settings saying the same thing while the language server still reports every
@@ -108,9 +109,10 @@ docs = ["cogapp>=3"]
 # names ISC001 as a rule that conflicts with the formatter, and a selection
 # holding it prints a warning on every run.
 #
-# A repository adds its own per-file-ignores here. The file is rendered once
-# and never updated, so an edit survives.
+# No target-version: ruff's settings reference recommends
+# project.requires-python over it.
 [tool.ruff]
+line-length = (( code_width ))
 show-fixes = true
 
 [tool.ruff.lint]
@@ -169,11 +171,24 @@ convention = "google"
   "D103",
   "T20",
 ]
-# A judge takes the solution file as it is written, and TC003 asks for the
-# stdlib import behind a type-checking block, which is scaffolding in a file
-# that is pasted.
-"src/**" = ["TC003"]
 
+# The guide's mypy settings. A repository's own per-module sections, a
+# package that ships no types or a module whose decorators are untyped, are
+# the mypy_overrides answer in .copier-answers.yml.
+[tool.mypy]
+python_version = "(( python_version ))"
+strict = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+# % for module, options in mypy_overrides.items()
+# ~
+[[tool.mypy.overrides]]
+module = ["(( module ))"]
+# % for option, value in options.items()
+(( option )) = (( value | tojson ))
+# % endfor
+# % endfor
+# ~
 # The sp-repo-review hook runs the guide's checks on every commit, so a
 # deviation has to be recorded rather than remembered. repo-review documents
 # the ignore list as a table whose values are reasons, and prints the reason in
@@ -183,7 +198,6 @@ convention = "google"
 # The PY00x checks for a README, a LICENSE, a docs folder and a tests folder
 # are deliberately not ignored. A repository without them should be told.
 [tool.repo-review.ignore]
-MY100 = "mypy.ini holds the configuration, and mypy reads it ahead of pyproject.toml"
 PC170 = "pygrep-hooks checks reStructuredText, which no repository here writes"
 PC140 = "Matches the mirrors-mypy, pyrefly and ty repository URLs alone. mypy runs as a local hook through uv, where the project's own packages resolve, and pyright gates beside it"
 
@@ -228,6 +242,9 @@ report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
 # types, so the docstrings do not repeat them.
 [tool.pydoclint]
 style = "google"
+# ruff's D107 requires a docstring on __init__ under the google convention,
+# and pydoclint's DOC301 rejects one unless this is set.
+allow-init-docstring = true
 arg-type-hints-in-docstring = false
 check-return-types = false
 # DOC404 compares the type in a Yields section against the annotation, which is

@@ -190,6 +190,7 @@ def fast(session: nox.Session) -> None:
         session: The nox session running this.
     """
     _sync(session)
+    session.env["TESTMON_DATAFILE"] = str(Path(session.create_tmp()) / ".testmondata")
     session.run("pytest", "--testmon", "--benchmark-skip", *session.posargs)
 
 
@@ -306,14 +307,16 @@ def mutants(session: nox.Session) -> None:
     config = tomllib.loads(Path(_MUTATION_CONFIG).read_text(encoding="utf-8"))
     config["cosmic-ray"]["module-path"] = source.as_posix()
     config["cosmic-ray"]["test-command"] = f"uv run pytest -q -x --timeout=5 {tests.as_posix()}"
-    rendered = Path(session.create_tmp()) / _MUTATION_CONFIG
+    tmp = Path(session.create_tmp())
+    rendered = tmp / _MUTATION_CONFIG
     rendered.write_text(tomli_w.dumps(config), encoding="utf-8")
+    database = str(tmp / _MUTATION_SESSION)
 
     session.install("cosmic-ray")
-    session.run("cosmic-ray", "init", "--force", str(rendered), _MUTATION_SESSION)
-    session.run("cr-filter-pragma", _MUTATION_SESSION)
-    session.run("cosmic-ray", "exec", str(rendered), _MUTATION_SESSION)
-    session.run("cr-report", _MUTATION_SESSION)
+    session.run("cosmic-ray", "init", "--force", str(rendered), database)
+    session.run("cr-filter-pragma", database)
+    session.run("cosmic-ray", "exec", str(rendered), database)
+    session.run("cr-report", database)
 
 
 @nox.session(default=False)

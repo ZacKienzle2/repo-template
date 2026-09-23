@@ -52,19 +52,13 @@ _envops:
   line_statement_prefix: "# %"
   line_comment_prefix: "# ~"
 
-# Rendered once, never updated: pyproject.toml is a repository's own file,
-# but ruff.toml extends it and mypy.ini stands in for its [tool.mypy], so a
-# repository rendered before `uv init` needs one to exist. A repository that
-# has one keeps it untouched.
-#
-# The package's __init__.py is the same case. The stub gives a new repository
-# something to import, and `copier copy --overwrite` into a repository that
+# Rendered once, never updated. The package's __init__.py stub gives a new
+# repository something to import, and `copier copy --overwrite` into a repository that
 # already had a package replaced its module with that stub. copier renders
 # each entry through Jinja before matching it against the destination path,
 # in match_skip on copy and on update alike, so the entry names the directory
 # as rendered rather than as the template spells it.
 _skip_if_exists:
-  - pyproject.toml
   - README.md
   - "src/(( package_name ))/__init__.py"
   # A tests directory is the repository's own once it holds a test; the stub
@@ -198,9 +192,7 @@ mypy_overrides:
   type: yaml
   help: >-
     Per-module mypy sections, as a YAML mapping of module pattern to options (numba.*: {ignore_missing_imports: true}),
-    rendered after the guide's global section in mypy.ini. mypy reads the first configuration file it finds and mypy.ini
-    comes before pyproject.toml, so a repository's own overrides live here rather than in a section that file would
-    shadow.
+    rendered as [[tool.mypy.overrides]] tables after the guide's global section in pyproject.toml.
   default: {}
   when: "(( has_python ))"
 
