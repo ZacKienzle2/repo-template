@@ -157,19 +157,6 @@ repos:
         language: pygrep
         entry: \b(PyBind|Numpy|Cmake|CCache|Github|PyTest)\b
         exclude: (( caps_exclude ))
-      # % if has_ast_grep
-      # ~
-      # ast-grep matches the syntax tree, so a rule does not fire inside a
-      # string or a comment and needs no regex approximating C++ or Python
-      # grammar. It also needs no compilation database, so it reaches sources no
-      # CMake target builds. Rules are in the directories sgconfig.yml names.
-      - id: ast-grep
-        name: ast-grep structural rules
-        language: system
-        entry: ast-grep scan
-        pass_filenames: false
-        types_or: [c++, c, cuda, python]
-      # % endif
   # % if has_python and not track_benchmarks
   # ~
   # A hand-written timing harness is the rule most often broken here, and it

@@ -278,13 +278,6 @@ vale_packages_own:
     read last and its BasedOnStyles replaces the package's.
   default: []
 
-has_ast_grep:
-  type: bool
-  help: >-
-    Does the repository keep ast-grep rules, with sgconfig.yml at the root? ast-grep then scans C, C++, CUDA and Python
-    as a hook, since it matches the syntax tree and needs no compilation database.
-  default: false
-
 has_adrs:
   type: bool
   help: >-

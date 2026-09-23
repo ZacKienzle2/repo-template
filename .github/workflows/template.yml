@@ -51,7 +51,7 @@ jobs:
           - name: chezmoi
             answers: "--data has_python=false --data has_chezmoi=true"
           - name: snakemake
-            answers: "--data has_snakemake=true --data has_import_linter=true --data has_ast_grep=true"
+            answers: "--data has_snakemake=true --data has_import_linter=true"
           - name: node
             answers: "--data has_python=false --data has_node=true --data vale_packages_own=[write-good]"
     steps:
@@ -84,13 +84,13 @@ jobs:
           touch LICENSE
           git add -A
 
-      # pyright reads the environment the Python workflow syncs, ast-grep is
-      # a binary the repository installs, and import-linter reads a contract
-      # the repository writes; each is skipped here and nowhere else.
+      # pyright reads the environment the Python workflow syncs, and
+      # import-linter reads a contract the repository writes; each is skipped
+      # here and nowhere else.
       - name: Run the rendered repository's hooks over its own tree
         working-directory: /tmp/generated
         env:
-          SKIP: pyright,ast-grep,import-linter
+          SKIP: pyright,import-linter
         run: uvx pre-commit run --all-files
 
   root:
