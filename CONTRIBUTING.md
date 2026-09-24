@@ -41,8 +41,9 @@ privately to the maintainers via the channel in [SECURITY.md](SECURITY.md).
 ### Prerequisites
 
 - Git 2.30 or newer
-- [pre-commit](https://pre-commit.com), which installs every formatter and
-  linter the repository uses into its own cache
+- [prek](https://prek.j178.dev), which installs the formatter or linter a
+  file needs into its own cache the first time a hook has such a file to run
+  on
 - The toolchain the README names
 
 ### Local Setup
@@ -50,13 +51,13 @@ privately to the maintainers via the channel in [SECURITY.md](SECURITY.md).
 ```bash
 git clone https://github.com/ZacKienzle2/repo-template
 cd repo-template
-pre-commit install --install-hooks
+prek install
 ```
 
 The hooks run on every commit and refuse one that fails a check; they are also
 what CI runs, so a commit that passes locally passes there.
 [.pre-commit-config.yaml](.pre-commit-config.yaml) pins each one, and
-`pre-commit run --all-files` names each one as it runs.
+`prek run --all-files` names each one as it runs.
 
 ## How to Contribute
 

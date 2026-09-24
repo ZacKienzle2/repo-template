@@ -18,11 +18,12 @@
 # Every question below stands for a fact about the repository that changes what
 # a configuration should say, and each was found by diffing the copies rather
 # than imagined. A fact the tool reading a file can decide for itself, from the
-# files present, is left to that tool: pre-commit selects a hook's files by
-# type, and a vale section or a markdownlint override applies only to the paths
-# it names. The answer cannot be computed from the tree instead of asked,
-# because copier update renders the old and new template in temporary
-# directories and applies the difference, so only a recorded answer moves a
+# files present, is left to that tool: prek selects a hook's files by type
+# and runs a hook only where it has files, and a vale section or a
+# markdownlint override applies only to the paths it names. The answer cannot
+# be computed from the tree instead of asked, because copier update renders
+# the old and new template in temporary directories and applies the
+# difference, so only a recorded answer moves a
 # change into an existing repository. A hook or setting that one repository
 # alone needs is that repository's own edit, which copier update keeps.
 
@@ -35,7 +36,7 @@ _answers_file: .copier-answers.yml
 # variable is `(( name ))`, which YAML reads as a plain scalar since `(` is
 # not an indicator, and Windows accepts in a file name where `<` and `>` are
 # refused; and `${{ }}` in a workflow is no longer Jinja, so no raw block
-# wraps it. The sources are therefore what pinact, pre-commit autoupdate,
+# wraps it. The sources are therefore what pinact, prek update,
 # actionlint, zizmor, the schema checks and prettier read, in place of a
 # render mapped back by hand. `[% %]` and `[# #]` remain for a block inside a
 # line, in a file name or in Markdown. Jinja documents each option under
@@ -86,7 +87,7 @@ _subdirectory: template
 _message_after_copy: |
   Written. Two things follow, in every clone:
 
-    pre-commit install --install-hooks
+    prek install
     uvx --from 'sp-repo-review[cli]' repo-review .
 
   The second reports this repository against the Scientific Python
@@ -127,9 +128,9 @@ is_template:
   help: >-
     Is this repository the template itself? The sources under template/ are then linted as the files they render:
     prettier formats each YAML and Markdown source, yamllint reads the YAML sources, actionlint, zizmor and the workflow
-    schema read the workflow sources, and pre-commit validates the hook source, each through the same hook it runs on
-    the rendered file. No Dependabot configuration renders, since Dependabot would edit the rendered root rather than
-    the sources. Every other repository answers false.
+    schema read the workflow sources, and prek validates the hook source, each through the same hook it runs on the
+    rendered file. No Dependabot configuration renders, since Dependabot would edit the rendered root rather than the
+    sources. Every other repository answers false.
   default: false
 
 is_public:
@@ -137,16 +138,16 @@ is_public:
   help: >-
     Is the repository public? GitHub Actions is free on standard runners for a public repository and draws on the
     account's monthly quota for a private one, where a run that finds the quota spent is refused and reports as a
-    failure. A private repository renders the pre-commit job in ci.yml alone, and the same hooks run at every local
-    commit. Every other workflow, and the label, release-drafter and auto-assign configuration they read, renders for a
-    public repository only.
+    failure. A private repository renders the hooks job in ci.yml alone, and the same hooks run at every local commit.
+    Every other workflow, and the label, release-drafter and auto-assign configuration they read, renders for a public
+    repository only.
   default: false
 
 has_cpp:
   type: bool
   help: >-
-    Does the repository hold C or C++ built with CMake? clang-format and gersemi then run as hooks, and .clang-format
-    and .gersemirc render with the shared widths.
+    Does the repository hold C or C++ built with CMake? .clang-format and .gersemirc then render with the shared widths.
+    clang-format and gersemi run as hooks in every repository, on the files that are there.
   default: false
 
 cpp_source_dir:
@@ -204,9 +205,8 @@ has_node:
   type: bool
   help: >-
     Does the repository hold JavaScript or TypeScript? Dependabot then moves its npm packages, .gitignore and
-    .gitattributes take github/gitignore's Node and gitattributes' Web blocks, prettier chooses the files it formats
-    itself, TypeScript included, and ci.yml gains a job that installs the packages and runs the lint, typecheck, build
-    and test scripts the repository defines.
+    .gitattributes take github/gitignore's Node and gitattributes' Web blocks, and ci.yml gains a job that installs the
+    packages and runs the lint, typecheck, build and test scripts the repository defines.
   default: false
 
 gitignore_own:

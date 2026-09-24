@@ -56,9 +56,9 @@ jobs:
       # around this repository's own names or JSON the template serialised,
       # so the pull request carries formatted files and CI's hooks find
       # nothing to change. A formatter that changed a file exits non-zero,
-      # which is pre-commit's contract, so the step continues either way.
+      # which is prek's contract, so the step continues either way.
       - name: Run the hooks over the update
-        run: uvx pre-commit run --all-files
+        run: uvx prek run --all-files
         continue-on-error: true
 
       - name: Open the pull request

@@ -89,12 +89,12 @@ on disk is the deliverable. A commit runs the hook set over the staged files and
 runs vale over the message, where a rejected draft re-runs every hook, measured
 at 10 to 15 seconds clean and 40 to 75 with rejections. The message is checked
 on its own first: write the draft to `.git/COMMIT_EDITMSG` and run
-`pre-commit run --hook-stage commit-msg --commit-msg-filename .git/COMMIT_EDITMSG`,
+`prek run --hook-stage commit-msg --commit-msg-filename .git/COMMIT_EDITMSG`,
 which is the same hook over the same styles in half a second. Commit when you
 want to, not as part of solving a problem.
 
 ## What runs without being asked
 
 The language servers report while an edit is still in flight, ruff and pyright
-for Python and Vale and LTeX+ for prose. `pre-commit` runs the rest at
-the commit, and `pre-commit install --install-hooks` puts it there.
+for Python and Vale and LTeX+ for prose. prek runs the rest at the commit, and
+`prek install` puts it there.

@@ -5,10 +5,17 @@
 # scientific-python/cookie/{{cookiecutter.project_name}}/.pre-commit-config.yaml.
 # sp-repo-review implements the guide as checks, so the result is measurable:
 # run `uvx --from 'sp-repo-review[cli]' repo-review .` against a generated
-# repository. Every revision below is set by `pre-commit autoupdate` rather
-# than typed, and Dependabot's pre-commit ecosystem moves them afterwards.
+# repository. Every revision below is set by `prek update` rather than typed,
+# and Dependabot's pre-commit ecosystem moves them afterwards.
 #
 # What the guide does not cover is prose, which the vale block at the end adds.
+#
+# prek runs this file. It is pre-commit's format, and prek prepares an
+# environment only for a hook that has files to run on, which its internals
+# page states. So every hook below is listed for every repository, and the
+# files present decide which run: a repository with no C++ never installs
+# clang-format. pre-commit installed every hook of a stage whatever the files,
+# which is why this file used to render a block per language answer.
 
 # % if precommit_exclude_own
 # The precommit_exclude_own answer, paths only this repository holds that no
@@ -25,9 +32,9 @@ exclude: |
     # % endfor
   )$
 
-# pre-commit install puts in only the pre-commit stage unless told otherwise,
-# and the hooks below that run at commit-msg are silent until it is. Listing
-# both here is the documented way to make one `pre-commit install` enough.
+# prek install puts in only the pre-commit stage unless told otherwise, and the
+# hooks below that run at commit-msg are silent until it is. Listing both here
+# is the documented way to make one `prek install` enough.
 default_install_hook_types: [pre-commit, commit-msg]
 
 # A hook with no stages of its own runs at every stage installed above, which
@@ -38,11 +45,6 @@ default_install_hook_types: [pre-commit, commit-msg]
 # refused a path it could not match, on every commit made from one. The file
 # hooks run at pre-commit, and the message hooks name commit-msg themselves.
 default_stages: [pre-commit]
-
-# pre-commit 4.4.0 renamed language: system to unsupported and documents the
-# old name as an alias it will remove. The local hooks below use the new name,
-# which an older pre-commit rejects, so this is the release they need.
-minimum_pre_commit_version: "4.4.0"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -63,14 +65,12 @@ repos:
       # a second parse reporting a subset of the first.
       - id: destroyed-symlinks
       - id: forbid-submodules
-      # % if has_python
       # The mutants session and testmon find a module's tests at
       # tests/test_<module>.py, and pytest collects test_*.py alone, so a test
       # file named any other way is silently never run. This is the hook that
       # says so; --pytest-test-first is the test_ prefix.
       - id: name-tests-test
         args: ["--pytest-test-first"]
-      # % endif
       # The hook's default, --fix=auto, rewrites a file that mixes endings and
       # leaves one that is consistent. .editorconfig declares each file's
       # ending and editorconfig-checker enforces it: CRLF for .bat, .cmd and
@@ -88,21 +88,13 @@ repos:
         # ~
   # The guide's answer to formatting everything that is not Python: one
   # formatter across yaml, markdown, json and the web languages, rather than a
-  # rule per file type argued out by hand.
-  # % if has_node
-  # The hook's own file selection, `types: [text]` with prettier's
-  # --ignore-unknown, is kept: prettier decides from the extension and
-  # .prettierignore what it formats. The guide's list below names no
-  # TypeScript, and identify, which pre-commit filters with, has no tag for
-  # .mts, .cts or .jsonc, so a list could not name them.
-  # % endif
+  # rule per file type argued out by hand. The hook's own file selection,
+  # `types: [text]` with prettier's --ignore-unknown, is kept: prettier
+  # decides from the extension and .prettierignore what it formats.
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.9.6
     hooks:
       - id: prettier
-        # % if not has_node
-        types_or: [yaml, markdown, html, css, scss, javascript, json]
-        # % endif
         # % if has_generated_changelog
         # CHANGELOG.md is git-cliff's output, and prettier rewrapped its
         # paragraphs and split its list items on the first regeneration, which
@@ -133,21 +125,18 @@ repos:
 
   # Capitalisation of the names of the tools themselves, which no linter has an
   # opinion about and everyone gets wrong. The word boundaries keep an
-  # identifier that contains a name, such as \faGithub, from matching.
-  # % if has_latex
-  # A citation key is an identifier generated from a title, so
+  # identifier that contains a name, such as \faGithub, from matching. A
+  # citation key is an identifier generated from a title, so
   # harrisArrayProgrammingNumpy2020 is camel case by construction, and a .bib
   # is left out for the reason _typos.toml leaves it unchecked.
-  # % endif
-  # % set caps_exclude = "\\.pre-commit-config\\.yaml(\\.jinja)?$" ~ ("|\\.bib$" if has_latex else "")
   - repo: local
     hooks:
       - id: disallow-caps
         name: Disallow improper capitalization
         language: pygrep
         entry: \b(PyBind|Numpy|Cmake|CCache|Github|PyTest)\b
-        exclude: (( caps_exclude ))
-  # % if has_python and not track_benchmarks
+        exclude: \.pre-commit-config\.yaml(\.jinja)?$|\.bib$
+  # % if not track_benchmarks
   # ~
   # A hand-written timing harness is the rule most often broken here, and it
   # was broken twice by writing a plausible file rather than by arguing with
@@ -179,12 +168,15 @@ repos:
   # that the repository has not selected, along with the rest of its checks, so
   # the drift is reported instead of waiting to be noticed. --show=err, which
   # the hook passes itself, prints the failures alone. It is published by
-  # scientific-python/cookie, the guide's own template.
+  # scientific-python/cookie, the guide's own template. The hook reviews the
+  # repository rather than the files handed to it, and the guide is for the
+  # Python project that has_python renders, so it renders with that project.
   - repo: https://github.com/scientific-python/cookie
     rev: 2026.08.14
     hooks:
       - id: sp-repo-review
-
+  # % endif
+  # ~
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:
@@ -222,7 +214,7 @@ repos:
   # does not. A rev with additional_dependencies would be a second copy of the
   # dependencies uv.lock already pins, and it would drift from them.
   #
-  # The hook is handed the staged Python files rather than the tree. pre-commit
+  # The hook is handed the staged Python files rather than the tree. prek
   # stashes unstaged edits to tracked files while the hooks run and leaves
   # untracked files in place, so a check over the tree read an untracked test
   # against a stashed edit to the module it imports and failed every commit
@@ -231,14 +223,14 @@ repos:
   #
   # Still at the manual stage, since a hook that fails every commit touching
   # Python is a gate with nothing behind it until the tree is clean.
-  # `pre-commit run mypy --hook-stage manual --all-files` runs it on demand,
-  # and a repository that reports no errors deletes the stages line.
+  # `prek run mypy --hook-stage manual --all-files` runs it on demand, and a
+  # repository that reports no errors deletes the stages line.
   - repo: local
     hooks:
       - id: mypy
         name: mypy
         entry: uv run --with mypy mypy
-        language: unsupported
+        language: system
         types_or: [python, pyi]
         require_serial: true
         stages: [manual]
@@ -261,15 +253,12 @@ repos:
     hooks:
       - id: validate-pyproject
         additional_dependencies: ["validate-pyproject-schema-store[all]"]
-  # % endif
-  # ~
-  # The hook selects notebooks by type, so a repository without one skips it.
+
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
       - id: nbstripout
-  # % if has_cpp
-  # ~
+
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v23.1.0
     hooks:
@@ -284,10 +273,8 @@ repos:
     rev: 0.29.1
     hooks:
       - id: gersemi
-  # % endif
-  # % if has_latex
-  # ~
-  # tex-fmt is the LaTeX formatter. pre-commit bootstraps the rust toolchain
+
+  # tex-fmt is the LaTeX formatter. prek bootstraps the rust toolchain
   # that builds it, so nothing is installed by hand, and its defaults hold:
   # two-space indentation and wrapping at 80 columns, which .editorconfig
   # states for editorconfig-checker. bibtex-tidy owns .bib below, so that type
@@ -310,18 +297,17 @@ repos:
 
   # chktex is part of every TeX Live, so the hook runs the installed one and
   # reads .chktexrc from the working directory, which is where chktex looks.
-  # The manual stage keeps it off the commit path; `pre-commit run chktex
+  # The manual stage keeps it off the commit path; `prek run chktex
   # --hook-stage manual --all-files` runs it on demand.
   - repo: local
     hooks:
       - id: chktex
         name: chktex
         entry: chktex --quiet --inputfiles=0
-        language: unsupported
+        language: system
         files: '\.tex$'
         stages: [manual]
-  # % endif
-  # ~
+
   # Schemas rather than opinions: each of these is the published schema for the
   # file it reads, so a workflow or a Dependabot configuration that GitHub
   # would reject fails here instead.
@@ -354,7 +340,7 @@ repos:
   # so each `uses: ./` line carries one until actionlint accepts `$/`. A
   # severity threshold hid every other low finding, and a disabled audit is
   # left out of zizmor's counts, which its documentation calls a last resort.
-  # --fix applies the fixes zizmor marks safe, and pre-commit fails the
+  # --fix applies the fixes zizmor marks safe, and prek fails the
   # commit on the rewritten file, so each fix is reviewed in the diff. args
   # replaces the hook's own list, which is --no-progress alone, so that flag
   # is repeated.
@@ -403,17 +389,16 @@ repos:
       # % endif
   # % if is_template
   # ~
-  # The hook source itself, read by `pre-commit validate-config`, the check
-  # pre-commit runs on a rendered configuration. pre-commit publishes a hook
-  # for a manifest and none for a configuration, so the command runs from
-  # its own package in a hook environment.
+  # The hook source itself, read by `prek validate-config`, the check prek
+  # runs on a rendered configuration. The source is not the configuration prek
+  # loads, so nothing validates it unless a hook hands it over, and the prek
+  # running the hooks is the one that reads it.
   - repo: local
     hooks:
       - id: validate-config-source
-        name: pre-commit validate-config on the hook source
-        entry: pre-commit validate-config
-        language: python
-        additional_dependencies: [pre-commit]
+        name: prek validate-config on the hook source
+        entry: prek validate-config
+        language: system
         files: ^template/\.pre-commit-config\.yaml\.jinja$
   # % endif
   # ~
@@ -451,10 +436,10 @@ repos:
 
   # The hook's own args stand, --write-changes and --force-exclude. typos
   # writes a correction only where it knows exactly one and reports the rest,
-  # and pre-commit fails the commit on the rewritten file, so each correction
-  # is reviewed in the diff. A word it gets wrong goes in _typos.toml, which
-  # is where the typos documentation puts a false positive.
-  # `pre-commit autoupdate` moves this to the floating v1, which is never
+  # and prek fails the commit on the rewritten file, so each correction is
+  # reviewed in the diff. A word it gets wrong goes in _typos.toml, which is
+  # where the typos documentation puts a false positive.
+  # `pre-commit autoupdate` moved this to the floating v1, which is never
   # re-resolved after the first install and warns on every commit thereafter.
   # An immutable tag is the point of pinning, so the version stays exact and
   # Dependabot's pre-commit ecosystem moves it.

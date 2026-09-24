@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit:
-    name: Run pre-commit hooks
+  hooks:
+    name: Run the hooks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -33,29 +33,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # % if has_python
-      # ~
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version-file: .python-version
-      # % endif
-      # ~
-      # The official action installs pre-commit and caches the hook
-      # environments on the configuration's hash, which is the recipe the
-      # pre-commit documentation gives for continuous integration. Its default
-      # is --all-files, so a hook added to the configuration is applied to the
-      # whole tree by the change that adds it.
-      - name: Run pre-commit
-        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-        # % if has_python
-        # pyright reads the project's synced environment, which the Python
-        # workflow builds, so the hook runs there and pre-commit's SKIP variable
-        # leaves it out of this job.
+
+      # prek's own action, which its continuous integration page gives:
+      # it installs prek, caches the hook environments and runs
+      # `prek run --all-files`, so a hook added to the configuration is
+      # applied to the whole tree by the change that adds it. pyright reads
+      # the project's synced environment, which the Python workflow builds, so
+      # the hook runs there and SKIP leaves it out of this job.
+      - name: Run the hooks
+        uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
         env:
           SKIP: pyright
-        # % endif
-        # ~
   gitleaks:
     name: Scan for leaked secrets
     runs-on: ubuntu-latest
@@ -73,7 +61,7 @@ jobs:
           # The scan walks history, which needs all of it.
           fetch-depth: 0
 
-      # The pre-commit hook scans what is staged, which is the right scan
+      # The gitleaks hook scans what is staged, which is the right scan
       # while committing and finds nothing on a runner. This scans the
       # repository's history. The official action needs a licence key for
       # organisation accounts only.
@@ -160,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     needs:
-      - pre-commit
+      - hooks
       - gitleaks
       - link-check
       # % if has_node

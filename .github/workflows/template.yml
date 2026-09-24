@@ -32,24 +32,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The hooks no longer differ between answers: prek runs every hook on
+        # the files a repository has. What an answer still changes is which
+        # files render, so two renders cover each answer both ways: every one
+        # false, and every one true at once, public so that each workflow
+        # renders for actionlint, zizmor and the workflow schema to read.
         # cpp_sanitizer_presets is left empty: the workflow it renders uses a
         # composite action the repository supplies, which actionlint would
         # report absent from a fresh render.
         include:
-          - name: python
-            answers: "--data has_python=true"
-          - name: cpp
-            answers: "--data has_python=false --data has_cpp=true"
-          - name: cpp-python
-            answers: "--data has_python=true --data has_cpp=true"
-          - name: benchmarks
-            answers: "--data has_generated_changelog=true --data track_benchmarks=true"
-          - name: latex
-            answers: "--data has_python=false --data has_latex=true --data precommit_exclude_own=[vendor/.*]"
-          - name: latex-python
-            answers: "--data has_latex=true"
-          - name: node
-            answers: "--data has_python=false --data has_node=true --data vale_packages_own=[write-good]"
+          - name: minimal
+            answers: "--data has_python=false"
+          - name: full
+            answers: >-
+              --data is_public=true --data has_python=true --data has_cpp=true --data has_latex=true --data
+              has_node=true --data has_generated_changelog=true --data track_benchmarks=true --data
+              precommit_exclude_own=[vendor/.*] --data vale_packages_own=[write-good]
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -61,9 +59,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # uvx finds or downloads the Python it runs copier and pre-commit on,
-      # and pre-commit builds each Python hook's environment from that same
-      # interpreter, so no version is set here.
+      # uvx finds or downloads the Python it runs copier on, so no version is
+      # set here.
       - name: Install uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
@@ -80,13 +77,15 @@ jobs:
           touch LICENSE
           git add -A
 
-      # pyright reads the environment the Python workflow syncs, so it is
-      # skipped here and nowhere else.
+      # The action the rendered ci.yml runs, pointed at the render. pyright
+      # reads the environment the Python workflow syncs, so it is skipped here
+      # as it is there.
       - name: Run the rendered repository's hooks over its own tree
-        working-directory: /tmp/generated
+        uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
+        with:
+          working-directory: /tmp/generated
         env:
           SKIP: pyright
-        run: uvx pre-commit run --all-files
 
   root:
     name: Check the root is a render of the sources

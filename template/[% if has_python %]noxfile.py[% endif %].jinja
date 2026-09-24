@@ -76,19 +76,19 @@ def _find_one(session: nox.Session, root: str, name: str) -> Path:
 
 @nox.session
 def lint(session: nox.Session) -> None:
-    """Run the pre-commit hooks over what has changed since HEAD.
+    """Run the hooks over what has changed since HEAD.
 
     The whole tree took thirteen seconds of a loop that otherwise costs three,
     and most of it went to files no edit had touched. `git ls-files` lists the
-    modified and the untracked, which is what pre-commit's --files takes.
+    modified and the untracked, which is what prek's --files takes.
     `nox -s lint -- --all-files` is the whole tree, which is what CI runs.
 
     Args:
         session: The nox session running this.
     """
-    session.install("pre-commit")
+    session.install("prek")
     if session.posargs:
-        session.run("pre-commit", "run", *session.posargs)
+        session.run("prek", "run", *session.posargs)
         return
     listed = session.run(
         "git",
@@ -103,7 +103,7 @@ def lint(session: nox.Session) -> None:
     if not changed:
         session.log("nothing has changed since HEAD")
         return
-    session.run("pre-commit", "run", "--files", *changed)
+    session.run("prek", "run", "--files", *changed)
 
 
 @nox.session
@@ -130,8 +130,8 @@ def generate(session: nox.Session) -> None:
     The ghostwriter prints its imports in its own order and its calls at its
     own width, so the first lint over the file always rewrote it and reported
     the rewrite as a failure. The two ruff hooks run over the written file
-    here, through pre-commit so the version is the one the hook config pins.
-    pre-commit exits 1 when a hook changes a file, which is the outcome wanted
+    here, through prek so the version is the one the hook config pins.
+    prek exits 1 when a hook changes a file, which is the outcome wanted
     here rather than an error.
 
     ruff-check exits 1 as well when errors it cannot fix are left, so accepting
@@ -157,7 +157,7 @@ def generate(session: nox.Session) -> None:
     old, new = session.posargs
     module = new.split(".")[-2]
     _sync(session)
-    session.install("pre-commit")
+    session.install("prek")
     source = session.run(
         "hypothesis",
         "write",
@@ -172,8 +172,8 @@ def generate(session: nox.Session) -> None:
     written = Path("tests", f"test_{module}.py")
     written.write_text(source.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
     for hook in ("ruff-check", "ruff-format"):
-        session.run("pre-commit", "run", hook, "--files", str(written), success_codes=[0, 1])
-    session.run("pre-commit", "run", "ruff-check", "--files", str(written))
+        session.run("prek", "run", hook, "--files", str(written), success_codes=[0, 1])
+    session.run("prek", "run", "ruff-check", "--files", str(written))
     session.log(f"wrote {written}")
 
 
@@ -206,8 +206,8 @@ def typing(session: nox.Session) -> None:
         session: The nox session running this.
     """
     _sync(session)
-    session.install("pre-commit")
-    session.run("pre-commit", "run", "pyright", "--all-files", *session.posargs)
+    session.install("prek")
+    session.run("prek", "run", "pyright", "--all-files", *session.posargs)
 
 
 @nox.session(default=False)

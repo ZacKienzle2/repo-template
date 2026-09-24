@@ -5,10 +5,17 @@
 # scientific-python/cookie/{{cookiecutter.project_name}}/.pre-commit-config.yaml.
 # sp-repo-review implements the guide as checks, so the result is measurable:
 # run `uvx --from 'sp-repo-review[cli]' repo-review .` against a generated
-# repository. Every revision below is set by `pre-commit autoupdate` rather
-# than typed, and Dependabot's pre-commit ecosystem moves them afterwards.
+# repository. Every revision below is set by `prek update` rather than typed,
+# and Dependabot's pre-commit ecosystem moves them afterwards.
 #
 # What the guide does not cover is prose, which the vale block at the end adds.
+#
+# prek runs this file. It is pre-commit's format, and prek prepares an
+# environment only for a hook that has files to run on, which its internals
+# page states. So every hook below is listed for every repository, and the
+# files present decide which run: a repository with no C++ never installs
+# clang-format. pre-commit installed every hook of a stage whatever the files,
+# which is why this file used to render a block per language answer.
 
 # The precommit_exclude_own answer, paths only this repository holds that no
 # hook should read or rewrite, such as third-party sources kept verbatim or a
@@ -23,9 +30,9 @@ exclude: |
     |vendir\.lock\.yml
   )$
 
-# pre-commit install puts in only the pre-commit stage unless told otherwise,
-# and the hooks below that run at commit-msg are silent until it is. Listing
-# both here is the documented way to make one `pre-commit install` enough.
+# prek install puts in only the pre-commit stage unless told otherwise, and the
+# hooks below that run at commit-msg are silent until it is. Listing both here
+# is the documented way to make one `prek install` enough.
 default_install_hook_types: [pre-commit, commit-msg]
 
 # A hook with no stages of its own runs at every stage installed above, which
@@ -36,11 +43,6 @@ default_install_hook_types: [pre-commit, commit-msg]
 # refused a path it could not match, on every commit made from one. The file
 # hooks run at pre-commit, and the message hooks name commit-msg themselves.
 default_stages: [pre-commit]
-
-# pre-commit 4.4.0 renamed language: system to unsupported and documents the
-# old name as an alias it will remove. The local hooks below use the new name,
-# which an older pre-commit rejects, so this is the release they need.
-minimum_pre_commit_version: "4.4.0"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -61,6 +63,12 @@ repos:
       # a second parse reporting a subset of the first.
       - id: destroyed-symlinks
       - id: forbid-submodules
+      # The mutants session and testmon find a module's tests at
+      # tests/test_<module>.py, and pytest collects test_*.py alone, so a test
+      # file named any other way is silently never run. This is the hook that
+      # says so; --pytest-test-first is the test_ prefix.
+      - id: name-tests-test
+        args: ["--pytest-test-first"]
       # The hook's default, --fix=auto, rewrites a file that mixes endings and
       # leaves one that is consistent. .editorconfig declares each file's
       # ending and editorconfig-checker enforces it: CRLF for .bat, .cmd and
@@ -73,12 +81,13 @@ repos:
 
   # The guide's answer to formatting everything that is not Python: one
   # formatter across yaml, markdown, json and the web languages, rather than a
-  # rule per file type argued out by hand.
+  # rule per file type argued out by hand. The hook's own file selection,
+  # `types: [text]` with prettier's --ignore-unknown, is kept: prettier
+  # decides from the extension and .prettierignore what it formats.
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.9.6
     hooks:
       - id: prettier
-        types_or: [yaml, markdown, html, css, scss, javascript, json]
       # The template's YAML and Markdown sources: the Jinja delimiters keep a
       # YAML source valid YAML, and the .jinja overrides in .prettierrc.yaml
       # name each parser, so a source is formatted as the file it renders.
@@ -101,20 +110,170 @@ repos:
 
   # Capitalisation of the names of the tools themselves, which no linter has an
   # opinion about and everyone gets wrong. The word boundaries keep an
-  # identifier that contains a name, such as \faGithub, from matching.
+  # identifier that contains a name, such as \faGithub, from matching. A
+  # citation key is an identifier generated from a title, so
+  # harrisArrayProgrammingNumpy2020 is camel case by construction, and a .bib
+  # is left out for the reason _typos.toml leaves it unchecked.
   - repo: local
     hooks:
       - id: disallow-caps
         name: Disallow improper capitalization
         language: pygrep
         entry: \b(PyBind|Numpy|Cmake|CCache|Github|PyTest)\b
-        exclude: \.pre-commit-config\.yaml(\.jinja)?$
+        exclude: \.pre-commit-config\.yaml(\.jinja)?$|\.bib$
 
-  # The hook selects notebooks by type, so a repository without one skips it.
+  # A hand-written timing harness is the rule most often broken here, and it
+  # was broken twice by writing a plausible file rather than by arguing with
+  # the prose in verification.md. A sentence that asks is not a check that
+  # fails, so this is the check. pre-commit's fail language exists to forbid a
+  # file by name: the entry below is printed when the pattern matches.
+  #
+  # pyperf timeit measures without a file at all. The fixture this would hold
+  # is read a second time only by the workflow track_benchmarks renders, and
+  # this repository answered that false, so nothing would ever run the file.
+  - repo: local
+    hooks:
+      - id: no-benchmark-harness
+        name: benchmark harnesses are not written by hand
+        # A literal block: prettier reflows a folded one to its own width and
+        # rewrote this file on the first commit of every rendered repository.
+        entry: |-
+          A pyperf timeit line answers this without a file. See the benchmark
+          section of verification.md. Answer track_benchmarks true if the
+          number has to be rechecked in CI.
+        language: fail
+        files: ^tests/test_benchmark_.*\.py$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
+    hooks:
+      - id: ruff-check
+        args: ["--fix", "--show-fixes"]
+      - id: ruff-format
+
+  # pydoclint compares each docstring's Args, Returns, Raises and Attributes
+  # sections with the signature and body, which ruff's stable pydocstyle rules
+  # do not, and ruff's own DOC port is preview-only. pydoclint reads
+  # [tool.pydoclint] from pyproject.toml by itself, so the docstring style
+  # stays in the file a repository already owns.
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 0.9.1
+    hooks:
+      - id: pydoclint
+
+  # uv's own hook refuses a commit whose uv.lock no longer matches
+  # pyproject.toml, so the lock file the CI jobs sync from is never stale.
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.11
+    hooks:
+      - id: uv-lock
+
+  # mirrors-mypy builds an environment holding mypy alone, where a decorator
+  # from pytest, hypothesis or nox resolves to Any. strict mode's
+  # disallow_untyped_decorators then reports one error per decorated function,
+  # 19 of them in the first repository to run this and none a type error in the
+  # code. The same tree checked inside the environment uv syncs reports
+  # `Success: no issues found in 11 source files`.
+  #
+  # `uv run --with mypy` syncs the project and adds the checker to it, which
+  # works in a repository whose dependency group names mypy and in one that
+  # declares no group at all, as the pyproject.toml rendered beside this file
+  # does not. A rev with additional_dependencies would be a second copy of the
+  # dependencies uv.lock already pins, and it would drift from them.
+  #
+  # The hook is handed the staged Python files rather than the tree. prek
+  # stashes unstaged edits to tracked files while the hooks run and leaves
+  # untracked files in place, so a check over the tree read an untracked test
+  # against a stashed edit to the module it imports and failed every commit
+  # until both were staged together. Over the staged files it checks what the
+  # commit contains, and the CI job runs the hook with --all-files.
+  #
+  # Still at the manual stage, since a hook that fails every commit touching
+  # Python is a gate with nothing behind it until the tree is clean.
+  # `prek run mypy --hook-stage manual --all-files` runs it on demand, and a
+  # repository that reports no errors deletes the stages line.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run --with mypy mypy
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+        stages: [manual]
+
+  # pyright reports no errors in its standard mode on the first repository to
+  # take this hook, so it gates the commit from the start. Static checkers found
+  # 29 of 40 real type bugs once code was annotated, against 14 before, and
+  # their checking strategies differ (Xu et al., doi:10.1109/icpc58990.2023.00039),
+  # so pyright runs beside mypy rather than instead of it. The hook's own
+  # environment cannot see the project's packages, and pyright-python's README
+  # fixes that by naming the project's virtual environment in [tool.pyright].
+  # CI runs the hook in the Python workflow, after uv has synced it.
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.414
+    hooks:
+      - id: pyright
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: "0.26"
+    hooks:
+      - id: validate-pyproject
+        additional_dependencies: ["validate-pyproject-schema-store[all]"]
+
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
       - id: nbstripout
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v23.1.0
+    hooks:
+      - id: clang-format
+        types_or: [c++, c, cuda]
+
+  # gersemi formats CMake through the hook its README gives, in place, and
+  # reads the width from .gersemirc beside the sources. cmakelang stood here
+  # as a local hook: it published none of its own and has had no release
+  # since 0.6.13 in 2020.
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.29.1
+    hooks:
+      - id: gersemi
+
+  # tex-fmt is the LaTeX formatter. prek bootstraps the rust toolchain
+  # that builds it, so nothing is installed by hand, and its defaults hold:
+  # two-space indentation and wrapping at 80 columns, which .editorconfig
+  # states for editorconfig-checker. bibtex-tidy owns .bib below, so that type
+  # is kept from tex-fmt: the two wrap a long field differently and each undid
+  # the other on every run while both had the file.
+  - repo: https://github.com/WGUNDERWOOD/tex-fmt
+    rev: v0.5.7
+    hooks:
+      - id: tex-fmt
+        exclude_types: [bib]
+
+  # bibtex-tidy is the BibTeX formatter, run as its README's hook recipe.
+  # --curly writes every field value in braces, so an entry pasted with
+  # quotation marks reads like the rest.
+  - repo: https://github.com/FlamingTempura/bibtex-tidy
+    rev: v1.14.0
+    hooks:
+      - id: bibtex-tidy
+        args: [--curly]
+
+  # chktex is part of every TeX Live, so the hook runs the installed one and
+  # reads .chktexrc from the working directory, which is where chktex looks.
+  # The manual stage keeps it off the commit path; `prek run chktex
+  # --hook-stage manual --all-files` runs it on demand.
+  - repo: local
+    hooks:
+      - id: chktex
+        name: chktex
+        entry: chktex --quiet --inputfiles=0
+        language: system
+        files: '\.tex$'
+        stages: [manual]
 
   # Schemas rather than opinions: each of these is the published schema for the
   # file it reads, so a workflow or a Dependabot configuration that GitHub
@@ -146,7 +305,7 @@ repos:
   # so each `uses: ./` line carries one until actionlint accepts `$/`. A
   # severity threshold hid every other low finding, and a disabled audit is
   # left out of zizmor's counts, which its documentation calls a last resort.
-  # --fix applies the fixes zizmor marks safe, and pre-commit fails the
+  # --fix applies the fixes zizmor marks safe, and prek fails the
   # commit on the rewritten file, so each fix is reviewed in the diff. args
   # replaces the hook's own list, which is --no-progress alone, so that flag
   # is repeated.
@@ -188,17 +347,16 @@ repos:
         types: [text]
         files: ^template/.*\.ya?ml[^./]*\.jinja$
 
-  # The hook source itself, read by `pre-commit validate-config`, the check
-  # pre-commit runs on a rendered configuration. pre-commit publishes a hook
-  # for a manifest and none for a configuration, so the command runs from
-  # its own package in a hook environment.
+  # The hook source itself, read by `prek validate-config`, the check prek
+  # runs on a rendered configuration. The source is not the configuration prek
+  # loads, so nothing validates it unless a hook hands it over, and the prek
+  # running the hooks is the one that reads it.
   - repo: local
     hooks:
       - id: validate-config-source
-        name: pre-commit validate-config on the hook source
-        entry: pre-commit validate-config
-        language: python
-        additional_dependencies: [pre-commit]
+        name: prek validate-config on the hook source
+        entry: prek validate-config
+        language: system
         files: ^template/\.pre-commit-config\.yaml\.jinja$
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
@@ -235,10 +393,10 @@ repos:
 
   # The hook's own args stand, --write-changes and --force-exclude. typos
   # writes a correction only where it knows exactly one and reports the rest,
-  # and pre-commit fails the commit on the rewritten file, so each correction
-  # is reviewed in the diff. A word it gets wrong goes in _typos.toml, which
-  # is where the typos documentation puts a false positive.
-  # `pre-commit autoupdate` moves this to the floating v1, which is never
+  # and prek fails the commit on the rewritten file, so each correction is
+  # reviewed in the diff. A word it gets wrong goes in _typos.toml, which is
+  # where the typos documentation puts a false positive.
+  # `pre-commit autoupdate` moved this to the floating v1, which is never
   # re-resolved after the first install and warns on every commit thereafter.
   # An immutable tag is the point of pinning, so the version stays exact and
   # Dependabot's pre-commit ecosystem moves it.
