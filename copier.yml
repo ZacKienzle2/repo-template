@@ -145,8 +145,8 @@ is_public:
 has_cpp:
   type: bool
   help: >-
-    Does the repository hold C or C++ built with CMake? clang-format, cmake-format and cmake-lint then run as hooks, and
-    .clang-format and .cmake-format.json render with the shared widths.
+    Does the repository hold C or C++ built with CMake? clang-format and gersemi then run as hooks, and .clang-format
+    and .gersemirc render with the shared widths.
   default: false
 
 cpp_source_dir:
@@ -270,7 +270,7 @@ indent_width:
 
 code_width:
   type: int
-  help: Where clang-format, cmake-format, ruff and snakefmt wrap code.
+  help: Where clang-format, gersemi and ruff wrap code.
   default: 100
   when: false
 
