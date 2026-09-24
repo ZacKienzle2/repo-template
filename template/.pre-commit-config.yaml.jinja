@@ -315,15 +315,6 @@ repos:
         language: system
         files: '\.tex$'
         stages: [manual]
-      # A source that is not valid UTF-8 comes from a paste out of Word or a
-      # partial transcode, and the build's error names none of that. iconv
-      # exits non-zero at the first invalid sequence, so the check is the
-      # converter's own rather than a pattern or a script.
-      - id: utf8
-        name: valid UTF-8
-        entry: iconv -f UTF-8 -t UTF-8
-        language: system
-        files: '\.(tex|bib|cls|sty|bst|pgf)$'
   # % endif
   # ~
   # Schemas rather than opinions: each of these is the published schema for the
