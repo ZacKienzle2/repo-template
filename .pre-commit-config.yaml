@@ -37,6 +37,11 @@ default_install_hook_types: [pre-commit, commit-msg]
 # hooks run at pre-commit, and the message hooks name commit-msg themselves.
 default_stages: [pre-commit]
 
+# pre-commit 4.4.0 renamed language: system to unsupported and documents the
+# old name as an alias it will remove. The local hooks below use the new name,
+# which an older pre-commit rejects, so this is the release they need.
+minimum_pre_commit_version: "4.4.0"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
