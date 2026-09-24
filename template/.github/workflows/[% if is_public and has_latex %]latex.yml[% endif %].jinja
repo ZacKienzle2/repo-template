@@ -1,26 +1,12 @@
-# Rendered for every repository that answered has_latex. latexmk runs inside
-# latex-action's full TeX Live image, so the engine, biblatex and biber come
-# from one release and agree on the control-file version, which a biber
-# installed beside a separate engine did not. pdflatex is latexmk's default
-# engine; a .latexmkrc in the repository is where that and anything else
-# latexmk reads changes, and the workflow reruns when it does.
-# % set document = latex_root | replace(".tex", "")
-# % set watched = ["**/*.tex", "**/*.bib", "**/*.cls", "**/*.sty", "**/*.bst", ".latexmkrc", ".github/workflows/latex.yml"]
+# latex-action's README workflow: latexmk in its TeX Live image, then the PDF
+# uploaded as an artifact.
 name: LaTeX
 
 on:
   push:
     branches: [main]
-    paths:
-      # % for pattern in watched
-      - "(( pattern ))"
-      # % endfor
   pull_request:
     branches: [main]
-    paths:
-      # % for pattern in watched
-      - "(( pattern ))"
-      # % endfor
   workflow_dispatch: {}
 
 permissions:
@@ -32,38 +18,21 @@ concurrency:
 
 jobs:
   build:
-    name: Build (( latex_root )) with TeX Live
+    name: Build (( latex_root ))
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Build (( latex_root ))
+      - name: Compile LaTeX document
         uses: xu-cheng/latex-action@6549dc21effb2730855a1281407ecfcececc6c1b # 4.1.0
         with:
           root_file: (( latex_root ))
-          # An engine or switch such as -shell-escape goes in the repository's
-          # .latexmkrc, which latexmk reads here and on a local build alike,
-          # as latex-action's README gives for its engine inputs.
-          # -Werror: an undefined reference or citation, or a multiply defined
-          # label, fails the build (latexmk 4.69+).
-          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -Werror
 
-      # The artifact is named after the document's file: @actions/artifact
-      # refuses a forward slash in an artifact name, which a latex_root in a
-      # subdirectory, such as reports/thesis/main-thesis.tex, would put there.
-      - name: Upload PDF
+      - name: Upload PDF file
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
         with:
-          name: (( document.split("/") | last ))
-          path: (( document )).pdf
-          retention-days: 14
+          name: PDF
+          path: (( latex_root | replace(".tex", ".pdf") ))

@@ -1,18 +1,6 @@
-# Assembled by copier from github.com/gitattributes/gitattributes, the
-# published collection. The template repository keeps upstream's files
-# unedited, fetched by vendir at the commit its vendir.lock.yml records, and
-# which of them apply follows the answers in .copier-answers.yml. A rule of
-# this repository's own, such as a Git LFS filter, is the gitattributes_own
-# answer, rendered at the end, so nothing in this file is written by hand.
+# Rendered by copier from gitattributes/gitattributes and the gitattributes_own
+# answer.
 [% filter trim %][% include "gitattributes/Common.gitattributes" %][% endfilter %]
-# % if has_cpp
-# ~
-[% filter trim %][% include "gitattributes/C++.gitattributes" %][% endfilter %]
-# % endif
-# % if has_python
-# ~
-[% filter trim %][% include "gitattributes/Python.gitattributes" %][% endfilter %]
-# % endif
 # % if has_node
 # ~
 [% filter trim %][% include "gitattributes/Web.gitattributes" %][% endfilter %]

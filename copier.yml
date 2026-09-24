@@ -1,54 +1,12 @@
-# Shared repository configuration.
-#
-# The files this template owns were, before it existed, near-identical copies
-# in five repositories: .yamllint.yaml agreed to 94 per cent across four,
-# commitlint.config.cjs to 91, .markdownlint.yaml to 89, and the security
-# workflows to 94 across three. 3711 lines were held that way, each edited by
-# hand in every copy. Two changes went wrong that week for exactly that reason:
-# an action input renamed in three repositories that pinned two different major
-# versions, and a justification copied into a repository the reason did not
-# apply to.
-#
-# Sharma, Fragkoulis and Spinellis name the duplicated block as a configuration
-# smell in "Does your configuration code smell?" (MSR 2016,
-# doi:10.1145/2901739.2901761), and Gallaba and McIntosh measure the same habit
-# in continuous integration in "Use and Misuse of Continuous Integration
-# Features" (TSE 2020, doi:10.1109/tse.2018.2838131).
-#
-# Every question below stands for a fact about the repository that changes what
-# a configuration should say, and each was found by diffing the copies rather
-# than imagined. A fact the tool reading a file can decide for itself, from the
-# files present, is left to that tool: prek selects a hook's files by type
-# and runs a hook only where it has files, and a vale section or a
-# markdownlint override applies only to the paths it names. The answer cannot
-# be computed from the tree instead of asked, because copier update renders
-# the old and new template in temporary directories and applies the
-# difference, so only a recorded answer moves a
-# change into an existing repository. A hook or setting that one repository
-# alone needs is that repository's own edit, which copier update keeps.
+# Shared configuration for repositories that hold no Python; a Python
+# repository is rendered from scientific-python/cookie instead. Each question
+# is a fact about the repository that no tool can read from its files.
 
 _answers_file: .copier-answers.yml
 
-# Jinja delimiters that leave every YAML source a valid YAML file. A block tag
-# is a line statement, `# % if has_python`, which YAML, TOML, INI, gitignore
-# and Python each read as a comment, yamllint accepts for the space after the
-# hash, and Jinja removes with its line; a
-# variable is `(( name ))`, which YAML reads as a plain scalar since `(` is
-# not an indicator, and Windows accepts in a file name where `<` and `>` are
-# refused; and `${{ }}` in a workflow is no longer Jinja, so no raw block
-# wraps it. The sources are therefore what pinact, prek update,
-# actionlint, zizmor, the schema checks and prettier read, in place of a
-# render mapped back by hand. `[% %]` and `[# #]` remain for a block inside a
-# line, in a file name or in Markdown. Jinja documents each option under
-# Environment, and the line statement under Line Statements. Copier's own
-# default is the one entry it changes from Jinja's, and a run block that
-# holds a `$((` arithmetic expansion would need a comment to escape it.
-#
-# A line statement ends at the whitespace after it, newlines included, so
-# every blank line that follows one is removed from the render. A line
-# comment ends before its newline, so a line that is the prefix alone
-# renders as an empty line: `# ~` on its own line is how a source writes
-# the blank line after `# % if` or `# % endif`.
+# Delimiters that keep every YAML, TOML and INI source valid in its own
+# format: `# %` line statements read as comments and `(( ))` as plain scalars,
+# so Renovate and prek read the sources as they are.
 _envops:
   keep_trailing_newline: true
   block_start_string: "[%"
@@ -60,274 +18,71 @@ _envops:
   line_statement_prefix: "# %"
   line_comment_prefix: "# ~"
 
-# Rendered once, never updated. The package's __init__.py stub gives a new
-# repository something to import, and `copier copy --overwrite` into a repository that
-# already had a package replaced its module with that stub. copier renders
-# each entry through Jinja before matching it against the destination path,
-# in match_skip on copy and on update alike, so the entry names the directory
-# as rendered rather than as the template spells it.
 _skip_if_exists:
   - README.md
-  - "src/(( package_name ))/__init__.py"
-  # A tests directory is the repository's own once it holds a test; the stub
-  # gives a fresh repository the folder repo-review's PY005 asks for and the
-  # file pytest reads fixtures from, and an update never touches it.
-  - tests/conftest.py
-  # A docs directory is the repository's own once it holds a page; the stub
-  # gives a fresh repository the folder repo-review's PY004 asks for and the
-  # front page Sphinx with MyST and ProperDocs both read, and an update never
-  # touches it.
-  - docs/index.md
 
-# The template's sources live here, so the repository root is an ordinary
-# project that its own hooks can lint, and the root is itself a render of
-# them: .copier-answers.yml at the root answers is_template true.
+# The root is itself a render of these sources.
 _subdirectory: template
 
 _message_after_copy: |
-  Written. Two things follow, in every clone:
-
-    prek install
-    uvx --from 'sp-repo-review[cli]' repo-review .
-
-  The second reports this repository against the Scientific Python
-  Development Guide, which is the published standard these settings answer
-  to.
-
-_message_after_update: |
-  Updated. A hunk that would not apply over a local edit is left as a
-  conflict in the file, with git's own markers and the file unmerged in the
-  index, which is copier's default and what `git status` reports as UU.
+  Written. Run `prek install` in every clone.
 
 github_repository:
   type: str
   help: >-
-    The repository as owner/name on GitHub. Issue form contact links, SUPPORT.md, CONTRIBUTING.md, CODEOWNERS and the
-    changelog's commit and compare links are built from it. No default: copier hands a template a pure path for the
-    destination, which cannot name the directory, so the first render is told and every update reads the answer back.
+    The repository as owner/name on GitHub. Issue form contact links, SUPPORT.md, CONTRIBUTING.md and CODEOWNERS are
+    built from it.
   validator: "[% if not github_repository or '/' not in github_repository %]owner/name[% endif %]"
-
-package_name:
-  type: str
-  help: >-
-    The importable name, derived from the repository name rather than asked. copier renders a path one segment at a
-    time, so a segment cannot hold a slash and the expression that splits github_repository cannot appear in a directory
-    name. Naming it once here is also what stops pyproject.toml and the source directory computing it twice.
-  default: "(( github_repository.split('/')[1] | lower | replace('-', '_') ))"
-  when: false
 
 has_discussions:
   type: bool
   help: >-
-    Are GitHub Discussions enabled on the repository? SUPPORT.md and the issue forms' contact links send questions
-    there, and the link checker fails on the link when Discussions are off.
+    Are GitHub Discussions enabled? SUPPORT.md and the issue forms' contact links send questions there.
   default: true
-
-is_template:
-  type: bool
-  help: >-
-    Is this repository the template itself? The sources under template/ are then linted as the files they render:
-    prettier formats each YAML and Markdown source, yamllint reads the YAML sources, actionlint, zizmor and the workflow
-    schema read the workflow sources, and prek validates the hook source, each through the same hook it runs on the
-    rendered file. No Dependabot configuration renders, since Dependabot would edit the rendered root rather than the
-    sources. Every other repository answers false.
-  default: false
 
 is_public:
   type: bool
   help: >-
     Is the repository public? GitHub Actions is free on standard runners for a public repository and draws on the
-    account's monthly quota for a private one, where a run that finds the quota spent is refused and reports as a
-    failure. A private repository renders the hooks job in ci.yml alone, and the same hooks run at every local commit.
-    Every other workflow, and the label, release-drafter and auto-assign configuration they read, renders for a public
-    repository only.
+    account's quota for a private one, so a private repository renders ci.yml alone.
   default: false
-
-has_cpp:
-  type: bool
-  help: >-
-    Does the repository hold C or C++ built with CMake? .clang-format and .gersemirc then render with the shared widths.
-    clang-format and gersemi run as hooks in every repository, on the files that are there.
-  default: false
-
-cpp_source_dir:
-  type: str
-  help: >-
-    Which directory holds the CMake project and its CMakePresets.json? The sanitizer workflow runs cmake there and
-    watches that directory, so a repository whose C++ sits in a subdirectory names it once here.
-  default: "."
-  when: "(( has_cpp ))"
-
-cpp_sanitizer_presets:
-  type: yaml
-  help: >-
-    Which CMake workflow presets run under sanitizers, as a YAML mapping of preset name to the compiler input of the
-    repository's own .github/actions/setup-cpp action ({asan-ubsan: gcc-13, tsan: clang-18})? A workflow preset chains
-    the configure, build and test presets that carry the sanitizer flags and runtime options, so CMakePresets.json stays
-    the one place they are written. The action installs the toolchain and reports its compilers as cc and cxx outputs,
-    which the workflow hands CMake as CC and CXX. An empty mapping renders no workflow.
-  default: {}
-  when: "(( has_cpp ))"
-
-has_generated_changelog:
-  type: bool
-  help: >-
-    Is CHANGELOG.md generated, by git-cliff or another tool? A generator's template decides its blank lines, so the
-    markdown rule about consecutive ones stops applying and the end-of-file fixer leaves the file alone.
-  default: false
-
-has_python:
-  type: bool
-  help: Does the repository hold Python?
-  default: true
-
-track_benchmarks:
-  type: bool
-  help: >-
-    Does the repository keep a benchmark whose result should be compared against the last run on main? The workflow runs
-    pytest with --benchmark-json and hands the report to benchmark-action/github-action-benchmark, which keeps the
-    history on the gh-pages branch and fails the run when a result worsens past the threshold. It reads GITHUB_TOKEN and
-    needs no account elsewhere. Leave this false unless a benchmark exists: pytest writes an empty report without one
-    and the action then has nothing to compare. verification.md reserves the pytest-benchmark fixture for this case and
-    sends every other measurement to pyperf, which needs no file.
-  default: false
-  when: "(( has_python ))"
-
-mypy_overrides:
-  type: yaml
-  help: >-
-    Per-module mypy sections, as a YAML mapping of module pattern to options (numba.*: {ignore_missing_imports: true}),
-    rendered as [[tool.mypy.overrides]] tables after the guide's global section in pyproject.toml.
-  default: {}
-  when: "(( has_python ))"
 
 has_node:
   type: bool
   help: >-
-    Does the repository hold JavaScript or TypeScript? Dependabot then moves its npm packages, .gitignore and
-    .gitattributes take github/gitignore's Node and gitattributes' Web blocks, and ci.yml gains a job that installs the
-    packages and runs the lint, typecheck, build and test scripts the repository defines.
+    Does the repository hold JavaScript or TypeScript? .gitignore and .gitattributes then take github/gitignore's Node
+    and gitattributes' Web blocks, and ci.yml runs the package scripts the repository defines.
   default: false
+
+has_latex:
+  type: bool
+  help: >-
+    Does the repository hold LaTeX? .gitignore then takes github/gitignore's TeX block, and a public repository renders
+    the LaTeX workflow.
+  default: false
+
+latex_root:
+  type: str
+  help: >-
+    Which file does latexmk build? The LaTeX workflow hands it to latex-action's root_file.
+  default: main.tex
+  when: "(( has_latex ))"
 
 gitignore_own:
   type: yaml
   help: >-
-    Paths only this repository produces, as a YAML list of patterns anchored to the root (/cache/, /outputs/), rendered
-    after the block assembled from github/gitignore. They live here rather than at the end of .gitignore so that file is
-    entirely the template's and copier update never has to carry a hand-written tail forward.
+    Paths only this repository produces, as a YAML list of patterns anchored to the root (/cache/, /outputs/).
   default: []
 
 gitattributes_own:
   type: yaml
   help: >-
-    Attribute lines only this repository needs, as a YAML list ("*.pdf filter=lfs diff=lfs merge=lfs -text"), rendered
-    after the blocks assembled from gitattributes/gitattributes. Git LFS filters for files at the root are the case a
-    nested .gitattributes cannot serve, since the root file is the template's.
+    Attribute lines only this repository needs, as a YAML list ("*.pdf filter=lfs diff=lfs merge=lfs -text").
   default: []
 
 precommit_exclude_own:
   type: yaml
   help: >-
     Paths no hook should read or rewrite, as a YAML list of regular expressions anchored to the root ("vendor/.*\.sty"),
-    joined into the top-level exclude of .pre-commit-config.yaml. Third-party sources kept verbatim are one case: a
-    formatter rewrites them and a linter reports style their authors chose. A chezmoi source directory is another: its
-    Go templates are named by attribute rather than by extension (.*\.tmpl, (.*/)?modify_[^/]*, \.chezmoitemplates/.*,
-    \.chezmoiignore, \.chezmoiexternal\.toml), and a formatter handed one rewrites the delimiters. The expression is
-    read in verbose mode, so a literal space or # is escaped.
+    read in verbose mode.
   default: []
-
-typos_words_own:
-  type: yaml
-  help: >-
-    Words only this repository uses that typos reads as misspellings, as a YAML list ([thm]), rendered under
-    [default.extend-words] in _typos.toml and each accepted as it is spelled. Nine of the ten repositories rendered from
-    this template had added such a table by hand after the rendered block, which copier update then had to carry
-    forward.
-  default: []
-
-vale_packages_own:
-  type: yaml
-  help: >-
-    Vale packages only this repository applies, as a YAML list appended to Packages in .vale.ini: a name from Vale's
-    package library, a URL to a .zip, or a path from the root to a directory laid out as a package (vale/website). Vale
-    reads each package's .vale.ini before the rendered file, so a directory package is where a repository keeps its own
-    sections and rule levels, and it can list further packages, such as Google or write-good, for its prose alone. Vale
-    applies the sections matching a file in the order it first read them, so a package whose section narrows the
-    rendered one, [content/**/*.mdx] under [*.{md,mdx}], declares [*.{md,mdx}] first; otherwise the rendered section is
-    read last and its BasedOnStyles replaces the package's.
-  default: []
-
-# Values every rendered file agrees on. A question with `when: false` is never
-# asked and never recorded; its default is what every render uses, so the
-# template is the one place any of them changes. Before this, the YAML width
-# was 120 in prettier and .editorconfig but 140 in yamllint, and the commit
-# width was 72 in CONTRIBUTING.md and VS Code but 100 in commitlint.
-indent_width:
-  type: int
-  help: Indentation for code; .editorconfig and clang-format read it, and the editor takes it from .editorconfig.
-  default: 4
-  when: false
-
-code_width:
-  type: int
-  help: Where clang-format, gersemi and ruff wrap code.
-  default: 100
-  when: false
-
-data_width:
-  type: int
-  help: Where prettier wraps YAML, through .prettierrc.yaml, and JavaScript and CSS, through .editorconfig.
-  default: 120
-  when: false
-
-prose_width:
-  type: int
-  help: Where prettier wraps Markdown prose.
-  default: 80
-  when: false
-
-commit_width:
-  type: int
-  help: commitlint's limit for the header and each body line, which is git's own convention.
-  default: 72
-  when: false
-
-python_version:
-  type: str
-  help: The Python every repository pins; .python-version, mypy's python_version and ruff's target read it.
-  default: "3.12"
-  when: false
-
-commit_types:
-  type: yaml
-  help: >-
-    Conventional Commits types as @commitlint/config-conventional's type-enum publishes them, each with the
-    release-notes section it files under and the SemVer increment the specification assigns: feat is minor, and every
-    other type is patch, Release Drafter's smallest increment. Types that share a section share its increment. A
-    breaking change, a ! in the title, is major. The release drafter's categories render from this one list.
-  default:
-    - { type: feat, title: New Features, bump: minor }
-    - { type: fix, title: Bug Fixes, bump: patch }
-    - { type: perf, title: Performance, bump: patch }
-    - { type: docs, title: Documentation, bump: patch }
-    - { type: refactor, title: Maintenance, bump: patch }
-    - { type: test, title: Maintenance, bump: patch }
-    - { type: build, title: Maintenance, bump: patch }
-    - { type: ci, title: Maintenance, bump: patch }
-    - { type: chore, title: Maintenance, bump: patch }
-    - { type: style, title: Maintenance, bump: patch }
-    - { type: revert, title: Maintenance, bump: patch }
-  when: false
-
-has_latex:
-  type: bool
-  help: Does the repository hold LaTeX?
-  default: false
-
-latex_root:
-  type: str
-  help: >-
-    Which file does latexmk build? The LaTeX workflow hands it to latex-action's root_file and names the PDF artefact
-    after it.
-  default: main.tex
-  when: "(( has_latex ))"

@@ -1,9 +1,5 @@
-# The checks every repository runs on a pull request: the hooks over the
-# whole tree, a history scan for secrets and the link checker, gated by one
-# job whose name branch protection requires. Formatting, linting and schema
-# checks live in .pre-commit-config.yaml and run here through the same
-# hooks, so no check exists in two forms. Pull requests only: main is
-# merged, not pushed, and a rebase merge lands the head that was checked.
+# The hooks over the whole tree, a secret scan of the history and the link
+# checker, gated by one job that branch protection requires.
 name: CI
 
 on:
@@ -22,88 +18,51 @@ jobs:
   hooks:
     name: Run the hooks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      # prek's own action, which its continuous integration page gives:
-      # it installs prek, caches the hook environments and runs
-      # `prek run --all-files`, so a hook added to the configuration is
-      # applied to the whole tree by the change that adds it. pyright reads
-      # the project's synced environment, which the Python workflow builds, so
-      # the hook runs there and SKIP leaves it out of this job.
       - name: Run the hooks
         uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
-        env:
-          SKIP: pyright
+
   gitleaks:
     name: Scan for leaked secrets
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # The scan walks history, which needs all of it.
           fetch-depth: 0
 
-      # The gitleaks hook scans what is staged, which is the right scan
-      # while committing and finds nothing on a runner. This scans the
-      # repository's history. The official action needs a licence key for
-      # organisation accounts only.
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   link-check:
-    name: Check Markdown links
+    name: Check links
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      # The action's defaults are the whole configuration: it reads lychee.toml,
-      # checks the Markdown, HTML and reStructuredText files quietly with the
-      # workflow's token, and fails the job on a broken link.
       - name: Link checker
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
 
   ci-summary:
     name: CI summary gate
     runs-on: ubuntu-latest
-    timeout-minutes: 2
     needs:
       - hooks
       - gitleaks
       - link-check
     if: always()
     steps:
-      # re-actors/alls-green reads the needs context and fails on any failed
-      # or cancelled job, so branch protection requires this one name rather
-      # than every job above.
       - name: Decide whether the needed jobs succeeded
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:

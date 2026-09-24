@@ -1,9 +1,5 @@
-# Two published actions in place of a job that installed commitlint with npm
-# and ran it from a shell block in four repositories. wagoid's action carries
-# @commitlint/config-conventional and reads commitlint.config.mjs from the
-# tree, so the rules are the same ones the commit-msg hook and this job share.
-# The title check matters for a squash merge, where the title becomes the
-# commit; amannn's action applies the same Conventional Commits grammar to it.
+# Conventional Commits on each commit and on the pull request title, which a
+# squash merge makes the commit.
 name: Commit Lint
 
 on:
@@ -21,17 +17,11 @@ jobs:
   commitlint:
     name: Validate commit messages
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
 
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

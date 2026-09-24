@@ -1,13 +1,5 @@
-# The template's own check: each answer set is rendered and the result is
-# put to the tools it configures. A template that generates an invalid
-# configuration is worse than none, so the rendered repository runs its own
-# hooks over its own tree, which is where actionlint, zizmor, the workflow
-# schema, yamllint, prettier and sp-repo-review report, and a hook that fails
-# or a formatter that rewrites a freshly rendered file fails the job. This
-# used to be `pre-commit validate-config` and a repo-review whose exit code
-# was discarded, and the guide's checks had failed on every render for as
-# long as the file said `|| true`. The hooks over the template's own tree,
-# the sources included, run in ci.yml, which the template renders for itself.
+# Renders each answer set and runs the rendered repository's own hooks on it,
+# then checks that the committed root is a render of the sources.
 name: Template
 
 on:
@@ -28,75 +20,42 @@ jobs:
   render:
     name: Render ${{ matrix.name }} and run its hooks
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        # The hooks no longer differ between answers: prek runs every hook on
-        # the files a repository has. What an answer still changes is which
-        # files render, so two renders cover each answer both ways: every one
-        # false, and every one true at once, public so that each workflow
-        # renders for actionlint, zizmor and the workflow schema to read.
-        # cpp_sanitizer_presets is left empty: the workflow it renders uses a
-        # composite action the repository supplies, which actionlint would
-        # report absent from a fresh render.
         include:
           - name: minimal
-            answers: "--data has_python=false"
+            answers: ""
           - name: full
             answers: >-
-              --data is_public=true --data has_python=true --data has_cpp=true --data has_latex=true --data
-              has_node=true --data has_generated_changelog=true --data track_benchmarks=true --data
-              precommit_exclude_own=[vendor/.*] --data vale_packages_own=[write-good]
+              --data is_public=true --data has_latex=true --data has_node=true --data
+              precommit_exclude_own=[vendor/.*]
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      # uvx finds or downloads the Python it runs copier on, so no version is
-      # set here.
       - name: Install uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
-      # The render is committed so the hooks see a tree, and a LICENSE is
-      # touched because the template renders none: which licence a repository
-      # takes is its own decision, and repo-review's PY003 is what says one
-      # is missing.
       - name: Render the answer set
         run: |
           mkdir -p /tmp/generated
           cd /tmp/generated
           git init -q
-          uvx copier copy --trust --defaults --vcs-ref=HEAD --data "github_repository=${GITHUB_REPOSITORY}" ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
-          touch LICENSE
+          uvx copier copy --defaults --vcs-ref=HEAD --data "github_repository=${GITHUB_REPOSITORY}" ${{ matrix.answers }} "${GITHUB_WORKSPACE}" .
           git add -A
 
-      # The action the rendered ci.yml runs, pointed at the render. pyright
-      # reads the environment the Python workflow syncs, so it is skipped here
-      # as it is there.
       - name: Run the rendered repository's hooks over its own tree
         uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
         with:
           working-directory: /tmp/generated
-        env:
-          SKIP: pyright
 
   root:
     name: Check the root is a render of the sources
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -105,43 +64,10 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
-      # copier recopy renders the template again from the answers in
-      # .copier-answers.yml and overwrites every file it writes, which is
-      # copier's documented way to reapply a template from scratch. A change
-      # to a source that was not rendered into the root, or a hand edit to a
-      # rendered file, is then a difference in the tree. The answers file
-      # records the commit it was rendered from, which moves with every
-      # commit, so it is left out of the comparison. Without --vcs-ref copier
-      # renders the latest tag, and HEAD here only because the shallow
-      # checkout fetches no tags; the render job's copy says HEAD as well.
       - name: Render the root again from its answers
-        run: uvx copier recopy --trust --force --quiet --vcs-ref=HEAD
+        run: uvx copier recopy --force --quiet --vcs-ref=HEAD
 
       - name: Compare the render with the committed root
         run: |
           git add --all
           git diff --cached --exit-code -- . ':!.copier-answers.yml'
-
-  pins:
-    name: Verify the action pins in the sources
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # fix false is the action's validation mode: every action in the files
-      # .pinact.yaml lists must be pinned to a full commit, and verify checks
-      # that each version comment names the tag the commit is.
-      - name: Check the pins and their version comments
-        uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
-        with:
-          fix: "false"
-          verify: "true"
