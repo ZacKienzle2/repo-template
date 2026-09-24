@@ -39,7 +39,7 @@ indent_size = unset
 
 # max_line_length is set only where a formatter reads it. prettier takes its
 # print width from here for these languages; ruff, clang-format and
-# cmake-format carry their own widths; and a linter reading a width under [*]
+# gersemi carry their own widths; and a linter reading a width under [*]
 # reported generated .gitignore headers, data files and a Doxyfile that no
 # formatter will ever wrap. .mts and .cts are TypeScript's ES module and
 # CommonJS forms of .ts, as .mjs and .cjs are of .js.
@@ -56,10 +56,10 @@ indent_size = 2
 indent_size = 2
 
 # clang-format owns the layout of these and aligns continuation lines to the
-# construct rather than to a multiple of the indent, and cmake-format does the
-# same for CMake. editorconfig-checker reads indent_size as a rule, so the
-# formatter's own output failed it on 29 lines of one tree. "unset" leaves
-# the width to the formatter and keeps the rest of the section.
+# construct rather than to a multiple of the indent. editorconfig-checker
+# reads indent_size as a rule, so the formatter's own output failed it on 29
+# lines of one tree. "unset" leaves the width to the formatter and keeps the
+# rest of the section.
 [*.{c,cc,cpp,cxx,h,hh,hpp,hxx,cu,cuh}]
 indent_size = unset
 
